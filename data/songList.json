@@ -1,0 +1,24 @@
+{
+    "songs": [
+        {
+            "artist": "Sample Artist",
+            "title": "Song 1",
+            "album": "Sample Album",
+            "year": 2021,
+            "capo": 0,
+            "tuning": "Standard",
+            "pick": true,
+            "active": true
+        },
+        {
+            "artist": "Sample Artist",
+            "title": "Song 2",
+            "album": "Sample Album",
+            "year": 2021,
+            "capo": 0,
+            "tuning": "Standard",
+            "pick": true,
+            "active": true
+        }
+    ]
+}
