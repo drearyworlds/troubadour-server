@@ -1,0 +1,16 @@
+{
+    "drinks": [
+        {
+            "name": "Sample Beer 1",
+            "style": "Sample Style",
+            "brewery": "Sample Brewery",
+            "city": "Sample City, State, Country"
+        },
+        {
+            "name": "Sample Beer 2",
+            "style": "Sample Style",
+            "brewery": "Sample Brewery",
+            "city": "Sample City, State, Country"
+        }
+   ]
+}
