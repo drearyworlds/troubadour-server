@@ -1,7 +1,12 @@
 import express from "express";
 import fs from "fs";
 import bodyParser from "body-parser";
-import { config } from "./config.json"
+
+// Load config file only if it exists
+let config = {};
+if (fs.existsSync("config.json")) {
+  config = fs.readFileSync("config.json");
+}
 
 const app = express();
 const port = 3000;
