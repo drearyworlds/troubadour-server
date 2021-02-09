@@ -1,23 +1,17 @@
 import express from "express";
 import fs from "fs";
 import bodyParser from "body-parser";
+import { Configuration } from "./config";
 
-// Load config file only if it exists
-let config = {};
-if (fs.existsSync("config.json")) {
-    config = fs.readFileSync("config.json");
-}
-
+const config = new Configuration()
 const app = express();
 const port = 3000;
 const ENCODING_UTF8 = "utf8";
-const DATA_PATH = config["data-path"] || "./data/";
-const SONGS_PATH = `${DATA_PATH}songs/`;
-const SONGLIST_JSON = `${DATA_PATH}songList.json`;
-const LYRICS_EXTENSION = config["lyrics-extension"] || ".txt";
-const DRINKLIST_JSON = `${DATA_PATH}drinkList.json`;
-const CURRENTSONG_TXT = `${DATA_PATH}currentsong.txt`;
-const CURRENTDRINK_TXT = `${DATA_PATH}currentdrink.txt`;
+const SONGS_PATH = `${config.getDataPath()}songs/`;
+const SONGLIST_JSON = `${config.getDataPath()}songList.json`;
+const DRINKLIST_JSON = `${config.getDataPath()}drinkList.json`;
+const CURRENTSONG_TXT = `${config.getDataPath()}currentsong.txt`;
+const CURRENTDRINK_TXT = `${config.getDataPath()}currentdrink.txt`;
 const HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
 const HTTP_HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
 const HTTP_CORS_ORIGIN_STAR = "*";
@@ -57,12 +51,12 @@ app.get("/songlyrics", (req, res) => {
     console.log(sanitizedArtist || "sanitizedArtist: null");
     console.log(sanitizedTitle || "sanitizedTitle: null");
 
-    const songLyricsFileName = `${SONGS_PATH}${sanitizedArtist} - ${sanitizedTitle}${LYRICS_EXTENSION}`;
+    const songLyricsFileName = `${SONGS_PATH}${sanitizedArtist} - ${sanitizedTitle}${config.getLyricsExtension()}`;
     console.log(songLyricsFileName || "songLyricsFileName: null");
 
     if (songLyricsFileName == null || !fs.existsSync(songLyricsFileName)) {
-      res.send(`Failed to retrieve song lyrics for ${songLyricsFileName}`)
-      return;
+        res.send(`Failed to retrieve song lyrics for ${songLyricsFileName}`)
+        return;
     }
 
     const songLyrics = fs.readFileSync(songLyricsFileName, ENCODING_UTF8);
