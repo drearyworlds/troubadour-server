@@ -39,14 +39,22 @@ app.get("/songlist", (req, res) => {
     res.send(songListJson);
 });
 
+app.get("/songdata", (req, res) => {
+    res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
+    const songListJson = fs.readFileSync(SONGLIST_JSON, ENCODING_UTF8);
+    const songList = JSON.parse(songListJson);
+    const songData = songList['songs'].find(song => (song.title = req.query.title && song.artist == req.query.artist)); 
+    res.send(JSON.stringify(songData))
+});
+
 app.get("/songlyrics", (req, res) => {
     res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_TEXT);
 
     console.log(req.query.artist || "reg.query.artist: null");
     console.log(req.query.title || "req.query.title: null");
 
-    let sanitizedArtist: string = req.query.artist.toString().replace(/:|;|'|"/g, "_");
-    let sanitizedTitle: string = req.query.title.toString().replace(/:|;|'|"/g, "_");
+    let sanitizedArtist: string = req.query.artist.toString().replace(/:|;|"/g, "_");
+    let sanitizedTitle: string = req.query.title.toString().replace(/:|;|"/g, "_");
 
     console.log(sanitizedArtist || "sanitizedArtist: null");
     console.log(sanitizedTitle || "sanitizedTitle: null");
@@ -76,7 +84,7 @@ app.post("/currentsong/clear", (req, res) => {
 app.post("/currentsong/update", (req, res) => {
     res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
 
-    let currentDrinkText = ``;
+    let currentSongText = ``;
     let response = {
         success: false
     };
@@ -86,14 +94,14 @@ app.post("/currentsong/update", (req, res) => {
         const song = req.body;
 
         // TODO: Ensure song exists in songlist (so as not to update current song to arbitrary value)
-        currentDrinkText = `${song["artist"]}\n${song["title"]}\n${song["album"]} (${song["year"]})`;
+        currentSongText = `${song["artist"]}\n${song["title"]}\n${song["album"]} (${song["year"]})`;
 
-        fs.writeFileSync(CURRENTSONG_TXT, currentDrinkText, ENCODING_UTF8);
-        console.log(`Current song updated to:\n${currentDrinkText}`);
+        fs.writeFileSync(CURRENTSONG_TXT, currentSongText, ENCODING_UTF8);
+        console.log(`Current song updated to:\n${currentSongText}`);
         response.success = true;
         res.send(JSON.stringify(response));
     } catch {
-        console.log(`Error occurred updating current song to:\n${currentDrinkText}`);
+        console.log(`Error occurred updating current song to:\n${currentSongText}`);
         res.send(JSON.stringify(response));
     }
 });
