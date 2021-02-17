@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-export const SongSchema = new Schema({
+export const schema = new Schema({
     title: String,
     artist: String,
     album: String,

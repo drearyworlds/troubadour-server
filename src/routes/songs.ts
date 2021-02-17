@@ -1,93 +1,176 @@
 import express from "express";
-import fs from "fs";
-import { Configuration } from "../config"
+import Configuration from "../config";
+import { SongRepository } from "../database/SongRepository";
 
 const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
 const HTTP_HEADER_CONTENT_TYPE_JSON = "application/json";
 const HTTP_HEADER_CONTENT_TYPE_TEXT = "text/plain";
 const ENCODING_UTF8 = "utf8";
 
-const config = new Configuration();
-const SONGS_PATH = `${config.getDataPath()}songs/`;
-const SONGLIST_JSON = `${config.getDataPath()}songList.json`;
-const CURRENTSONG_TXT = `${config.getDataPath()}currentsong.txt`;
+const SONGS_PATH = `${Configuration.getDataPath()}songs/`;
+const SONGLIST_JSON = `${Configuration.getDataPath()}songList.json`;
+const CURRENTSONG_TXT = `${Configuration.getDataPath()}currentsong.txt`;
 
-export const SongsRouter = express.Router()
+export class SongsRouter {
+    public router = express.Router();
 
-SongsRouter.get("/songlist", (req, res) => {
-    res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
-    const songListJson = fs.readFileSync(SONGLIST_JSON, ENCODING_UTF8);
-    res.send(songListJson);
-});
+    constructor() {}
 
-SongsRouter.get("/songdata", (req, res) => {
-    res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
-    const songListJson = fs.readFileSync(SONGLIST_JSON, ENCODING_UTF8);
-    const songList = JSON.parse(songListJson);
-    const songData = songList["songs"].find(
-        (song: any) => (song.title = req.query.title && song.artist == req.query.artist)
-    );
-    res.send(JSON.stringify(songData));
-});
+    public createRoutes() {
+        // New API
+        this.router.route("/song/list").get(function (req, res) {
+            console.log("Songthis.router.getSongList (new)");
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
+            const songListJson = new SongRepository().getSongList(SONGLIST_JSON, ENCODING_UTF8);
+            res.send(songListJson);
+        });
 
-SongsRouter.get("/songlyrics", (req, res) => {
-    res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_TEXT);
+        this.router.route("/song/data").get(function (req, res) {
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
+            const songDataJson = new SongRepository().getSongData(
+                SONGLIST_JSON,
+                ENCODING_UTF8,
+                req.query.artist.toString(),
+                req.query.title.toString()
+            );
+            res.send(songDataJson);
+        });
 
-    console.log(req.query.artist || "reg.query.artist: null");
-    console.log(req.query.title || "req.query.title: null");
+        this.router.route("/song/lyrics").get(function (req, res) {
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_TEXT);
 
-    if (req && req.query && req.query.artist && req.query.title) {
-        let sanitizedArtist: string = req.query.artist.toString().replace(/:|;|"/g, "_");
-        let sanitizedTitle: string = req.query.title.toString().replace(/:|;|"/g, "_");
+            if (req && req.query && req.query.artist && req.query.title) {
+                const artist = req.query.artist.toString();
+                const songLyrics = new SongRepository().getSongLyrics(
+                    SONGS_PATH,
+                    Configuration.getLyricsExtension(),
+                    ENCODING_UTF8,
+                    req.query.artist.toString(),
+                    req.query.title.toString()
+                );
+                if (songLyrics) {
+                    res.send(songLyrics);
+                } else {
+                    res.send("Unable to obtain song lyrics");
+                }
+            }
+        });
 
-        console.log(sanitizedArtist || "sanitizedArtist: null");
-        console.log(sanitizedTitle || "sanitizedTitle: null");
+        this.router
+            .route("/song/current")
+            .get(function (req, res) {
+                res.send("Get the current song");
+            })
+            .post(function (req, res) {
+                console.log("/currentsong/update");
+                res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
 
-        const songLyricsFileName = `${SONGS_PATH}${sanitizedArtist} - ${sanitizedTitle}${config.getLyricsExtension()}`;
-        console.log(songLyricsFileName || "songLyricsFileName: null");
+                let currentSongText = ``;
+                let response = {
+                    success: false
+                };
 
-        if (songLyricsFileName == null || !fs.existsSync(songLyricsFileName)) {
-            res.send(`Failed to retrieve song lyrics for ${songLyricsFileName}`);
-            return;
-        }
+                try {
+                    console.log(req.body || "body: null");
+                    const song = req.body;
 
-        const songLyrics = fs.readFileSync(songLyricsFileName, ENCODING_UTF8);
-        res.send(songLyrics);
+                    // TODO: Ensure song exists in songlist (so as not to update current song to arbitrary value)
+
+                    response.success = new SongRepository().setCurrentSong(
+                        CURRENTSONG_TXT,
+                        ENCODING_UTF8,
+                        song
+                    );
+
+                    res.send(JSON.stringify(response));
+                } catch {
+                    console.log(`Error occurred updating current song to:\n${currentSongText}`);
+                    res.send(JSON.stringify(response));
+                }
+            })
+            .delete(function (req, res) {
+                res.send("Clear the current song");
+            });
+
+        // Legacy API
+
+        this.router.get("/songlist", (req, res) => {
+            console.log(`[${this.constructor.name}::${Object.getOwnPropertyNames(SongsRouter.prototype)} (old)] [Start]`);
+            
+
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
+            const songListJson = new SongRepository().getSongList(SONGLIST_JSON, ENCODING_UTF8);
+            //console.log(`songListJson: ${songListJson}`);
+            res.send(songListJson);
+        });
+
+        this.router.get("/songdata", (req, res) => {
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
+            const songDataJson = new SongRepository().getSongData(
+                SONGLIST_JSON,
+                ENCODING_UTF8,
+                req.query.artist.toString(),
+                req.query.title.toString()
+            );
+            res.send(songDataJson);
+        });
+
+        this.router.get("/songlyrics", (req, res) => {
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_TEXT);
+
+            if (req && req.query && req.query.artist && req.query.title) {
+                const artist = req.query.artist.toString();
+                const songLyrics = new SongRepository().getSongLyrics(
+                    SONGS_PATH,
+                    Configuration.getLyricsExtension(),
+                    ENCODING_UTF8,
+                    req.query.artist.toString(),
+                    req.query.title.toString()
+                );
+                if (songLyrics) {
+                    res.send(songLyrics);
+                } else {
+                    res.send("Unable to obtain song lyrics");
+                }
+            }
+        });
+
+        this.router.post("/currentsong/clear", (req, res) => {
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_TEXT);
+            try {
+                new SongRepository().clearCurrentSong(CURRENTSONG_TXT, ENCODING_UTF8);
+                res.send(true);
+            } catch {
+                res.send(`Error clearing current song`);
+            }
+        });
+
+        this.router.post("/currentsong/update", (req, res) => {
+            console.log("/currentsong/update");
+            res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
+
+            let currentSongText = ``;
+            let response = {
+                success: false
+            };
+
+            try {
+                console.log(req.body || "body: null");
+                const song = req.body;
+
+                // TODO: Ensure song exists in songlist (so as not to update current song to arbitrary value)
+
+                response.success = new SongRepository().setCurrentSong(
+                    CURRENTSONG_TXT,
+                    ENCODING_UTF8,
+                    song
+                );
+
+                res.send(JSON.stringify(response));
+            } catch {
+                console.log(`Error occurred updating current song to:\n${currentSongText}`);
+                res.send(JSON.stringify(response));
+            }
+        });
     }
-});
-
-SongsRouter.post("/currentsong/clear", (req, res) => {
-    res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_TEXT);
-    try {
-        fs.writeFileSync(CURRENTSONG_TXT, "", ENCODING_UTF8);
-        res.send(true);
-    } catch {
-        res.send(`Error clearing current song`);
-    }
-});
-
-SongsRouter.post("/currentsong/update", (req, res) => {
-    console.log("/currentsong/update");
-    res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
-
-    let currentSongText = ``;
-    let response = {
-        success: false
-    };
-
-    try {
-        console.log(req.body || "body: null");
-        const song = req.body;
-
-        // TODO: Ensure song exists in songlist (so as not to update current song to arbitrary value)
-        currentSongText = `${song["artist"]}\n${song["title"]}\n${song["album"]} (${song["year"]})`;
-
-        fs.writeFileSync(CURRENTSONG_TXT, currentSongText, ENCODING_UTF8);
-        console.log(`Current song updated to:\n${currentSongText}`);
-        response.success = true;
-        res.send(JSON.stringify(response));
-    } catch {
-        console.log(`Error occurred updating current song to:\n${currentSongText}`);
-        res.send(JSON.stringify(response));
-    }
-});
+}

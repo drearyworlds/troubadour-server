@@ -1,25 +1,24 @@
 import express from "express";
 import fs from "fs";
-import { Configuration } from "../config"
+import Configuration from "../config"
 
 const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
 const HTTP_HEADER_CONTENT_TYPE_JSON = "application/json";
 const HTTP_HEADER_CONTENT_TYPE_TEXT = "text/plain";
 const ENCODING_UTF8 = "utf8";
 
-const config = new Configuration();
-const DRINKLIST_JSON = `${config.getDataPath()}drinkList.json`;
-const CURRENTDRINK_TXT = `${config.getDataPath()}currentdrink.txt`;
+const DRINKLIST_JSON = `${Configuration.getDataPath()}drinkList.json`;
+const CURRENTDRINK_TXT = `${Configuration.getDataPath()}currentdrink.txt`;
 
-export const DrinksRouter = express.Router()
+export const router = express.Router()
 
-DrinksRouter.get("/drinklist", (req, res) => {
+router.get("/drinklist", (req, res) => {
     res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
     const contents = fs.readFileSync(DRINKLIST_JSON, ENCODING_UTF8);
     res.send(contents);
 });
 
-DrinksRouter.post("/currentdrink/clear", (req, res) => {
+router.post("/currentdrink/clear", (req, res) => {
     res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
 
     try {
@@ -30,7 +29,7 @@ DrinksRouter.post("/currentdrink/clear", (req, res) => {
     }
 });
 
-DrinksRouter.post("/currentdrink/update", (req, res) => {
+router.post("/currentdrink/update", (req, res) => {
     res.setHeader(HTTP_HEADER_CONTENT_TYPE, HTTP_HEADER_CONTENT_TYPE_JSON);
 
     let currentDrinkText = ``;

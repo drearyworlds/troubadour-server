@@ -1,14 +1,12 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { Configuration } from "./config";
 import mongoose from "mongoose";
 import { SongsRouter } from "./routes/songs"
-import { DrinksRouter } from "./routes/drinks"
-//import { SongSchema } from "./models/Song";
+import { router as DrinksRouter } from "./routes/drinks"
+import { schema as SongSchema } from "./models/Song";
 
 const app = express();
 const port = 3000;
-const config = new Configuration();
 
 const HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
 const HTTP_HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
@@ -55,7 +53,10 @@ app.get("/", (req, res) => {
     res.send("Send a GET request to /songlist /drinklist to retrieve the song or drink list");
 });
 
-app.use("/", SongsRouter)
+const songsRouter : SongsRouter = new SongsRouter()
+songsRouter.createRoutes()
+app.use("/", songsRouter.router)
+
 app.use("/", DrinksRouter)
 
 app.listen(port, () => {
