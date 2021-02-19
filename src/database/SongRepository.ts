@@ -1,76 +1,38 @@
-import fs from "fs";
+import mongoose from "mongoose";
+import { Song, schema as SongSchema } from "../models/Song";
+import { FileManager } from "../file/FileManager";
+import { Constants } from "../config/Constants";
 
 export class SongRepository {
-    public getSongList(songListJsonPath: string, encoding: "utf8") {
-        console.log("[SongRepository.getSongList] [Start]")
-        console.log(`[SongRepository.getSongList] songListJsonPath: ${songListJsonPath}`)
-        console.log(`[SongRepository.getSongList] encoding: ${encoding}`)
-        console.log("[SongRepository.getSongList] [End]")
-        return fs.readFileSync(songListJsonPath, encoding);
+    private static SongModel = mongoose.model("Song", SongSchema);
+
+    public static async deleteAllSongs() {
+        console.log("SongRepository::deleteAllSongs");
+        await SongRepository.SongModel.remove({}, function (err) {
+            console.log("Song collection removed");
+        });
     }
 
-    public getSongData(
-        songListJsonPath: string,
-        encoding: "utf8",
-        songArtist: string,
-        songTitle: string
-    ) {
-        console.log("[SongRepository.getSongData] [Start]")
-        const songListJson = fs.readFileSync(songListJsonPath, encoding);
-        const songList = JSON.parse(songListJson);
-        const songData = songList["songs"].find(
-            (song: any) => song.artist == songArtist && song.title == songTitle
-        );
-
-        const songDataJson = JSON.stringify(songData)
-
-        console.log("[SongRepository.getSongData] [End]")
-        return songDataJson;
-    }
-
-    public getSongLyrics(
-        songLyricsPath: string,
-        lyricsExtension: string,
-        encoding: "utf8",
-        artist: string,
-        title: string
-    ) {
-        console.log("[SongRepository.getSongLyrics] [Start]")
-        let sanitizedArtist: string = artist.replace(/:|;|"/g, "_");
-        let sanitizedTitle: string = title.toString().replace(/:|;|"/g, "_");
-
-        console.log(sanitizedArtist || "sanitizedArtist: null");
-        console.log(sanitizedTitle || "sanitizedTitle: null");
-
-        const songLyricsFileName = `${songLyricsPath}${sanitizedArtist} - ${sanitizedTitle}${lyricsExtension}`;
-        console.log(songLyricsFileName || "songLyricsFileName: null");
-
-        if (songLyricsFileName == null || !fs.existsSync(songLyricsFileName)) {
-            return null;
+    public static async populateFromJsonFile() {
+        console.log("SongRepository::populateDatabase");
+        const songsJson = FileManager.getSongList(Constants.SONGLIST_JSON, Constants.ENCODING_UTF8);
+        const songs: Song[] = JSON.parse(songsJson)["songs"];
+        for (const song of songs) {
+            console.log(`Adding song to database: ${song.artist} - ${song.title}`);
+            SongRepository.addSong(song);
         }
-
-        const songLyrics = fs.readFileSync(songLyricsFileName, encoding);
-
-        console.log("[SongRepository.getSongLyrics] [End]")
-        return songLyrics;
     }
 
-    public getCurrentSong(currentSongPath : string, encoding : "utf8") {
-        fs.readFileSync(currentSongPath, encoding);
+    public static addSong(songToAdd: Song) {
+        const songModel = new SongRepository.SongModel(songToAdd);
+        songModel.save().then((v) => {
+            console.log(`Added song to Song collection: ${v}`);
+        });
     }
 
-    public setCurrentSong(currentSongPath : string, encoding : "utf8", song : object) {
-        const currentSongText = `${song["artist"]}\n${song["title"]}\n${song["album"]} (${song["year"]})`;
-
-        fs.writeFileSync(currentSongPath, currentSongText, encoding);
-        console.log(`Current song updated to:\n${currentSongText}`);
-
-        fs.writeFileSync(currentSongPath, "", encoding);
-
-        return true;
-    }
-
-    public clearCurrentSong(currentSongPath : string, encoding : "utf8") {
-        fs.writeFileSync(currentSongPath, "", encoding);
+    public static async getSongList()  {
+        var query = SongRepository.SongModel.find({}).select({});
+        const returnValue = await query.exec();
+        return returnValue;
     }
 }
