@@ -60,12 +60,10 @@ export class FileManager {
     }
 
     public static setCurrentSong(currentSongPath: string, encoding: "utf8", song: object) {
-        const currentSongText = `${song["artist"]}\n${song["title"]}\n${song["album"]} (${song["year"]})`;
+        const currentSongText = `${song["artist"]}\n"${song["title"]}"\n${song["album"]} (${song["year"]})`;
 
         fs.writeFileSync(currentSongPath, currentSongText, encoding);
         console.log(`Current song updated to:\n${currentSongText}`);
-
-        fs.writeFileSync(currentSongPath, "", encoding);
 
         return true;
     }
