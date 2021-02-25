@@ -10,11 +10,8 @@ const app = express();
 const port = 3000;
 
 DatabaseManager.connectToDatabase().then(() => {
-    console.log("deleting all songs");
-    SongRepository.deleteAllSongs().then(() => {
-        console.log("populating database");
-        SongRepository.populateFromJsonFile();
-    });
+    console.log("populating database");
+    SongRepository.populateFromJsonFile();
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));

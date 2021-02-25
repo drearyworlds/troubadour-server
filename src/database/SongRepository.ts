@@ -18,9 +18,22 @@ export class SongRepository {
         const songsJson = FileManager.getSongList(Constants.SONGLIST_JSON, Constants.ENCODING_UTF8);
         const songs: Song[] = JSON.parse(songsJson)["songs"];
         for (const song of songs) {
-            console.log(`Adding song to database: ${song.artist} - ${song.title}`);
-            SongRepository.addSong(song);
+            if (!await SongRepository.updateSong(song)) {
+                console.log(`Adding new song to database`);
+                SongRepository.addSong(song);
+            } else {
+                console.log(`Updated song in database`);
+            }
+
         }
+    }
+
+    public static async updateSong(songToUpdate: Song) {
+        const filter = { artist: songToUpdate.artist, title: songToUpdate.title };
+        const success = await SongRepository.SongModel.findOneAndUpdate(filter, songToUpdate)
+
+        console.log("Song updated: " + success)
+        return success;
     }
 
     public static addSong(songToAdd: Song) {
@@ -30,7 +43,7 @@ export class SongRepository {
         });
     }
 
-    public static async getSongList()  {
+    public static async getSongList() {
         var query = SongRepository.SongModel.find({}).select({});
         const returnValue = await query.exec();
         return returnValue;

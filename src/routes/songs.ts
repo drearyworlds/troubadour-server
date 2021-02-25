@@ -25,6 +25,9 @@ export class SongsRouter {
                 songs: songsArray
             };
 
+            console.log("songlist")
+            console.log(songList)
+
             const songListJson = JSON.stringify(songList);
             res.send(songListJson);
         });
