@@ -48,3 +48,4 @@ Thumbs.db
 # Data files
 /config.json
 /data
+/.env
