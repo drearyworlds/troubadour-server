@@ -1,6 +1,7 @@
 import fs from "fs";
 
 export class FileManager {
+    // Deprecated
     public static getSongList(songListJsonPath: string, encoding: "utf8") {
         console.log("[FileManager.getSongList] [Start]");
         console.log(`[FileManager.getSongList] songListJsonPath: ${songListJsonPath}`);
@@ -9,7 +10,8 @@ export class FileManager {
         return fs.readFileSync(songListJsonPath, encoding);
     }
 
-    public static getSongData(
+    // Deprecated
+    private static getSongData(
         songListJsonPath: string,
         encoding: "utf8",
         songArtist: string,
@@ -28,7 +30,8 @@ export class FileManager {
         return songDataJson;
     }
 
-    public static getSongLyrics(
+    // Deprecated
+    private static getSongLyrics(
         songLyricsPath: string,
         lyricsExtension: string,
         encoding: "utf8",
@@ -62,6 +65,7 @@ export class FileManager {
     public static setCurrentSong(currentSongPath: string, encoding: "utf8", song: object) {
         const currentSongText = `${song["artist"]}\n"${song["title"]}"\n${song["album"]} (${song["year"]})`;
 
+        console.log(`Updating current song at: ${currentSongPath}`);
         fs.writeFileSync(currentSongPath, currentSongText, encoding);
         console.log(`Current song updated to:\n${currentSongText}`);
 

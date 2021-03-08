@@ -2,17 +2,14 @@ import express from "express";
 import bodyParser from "body-parser";
 import { SongsRouter } from "./routes/songs";
 import { router as DrinksRouter } from "./routes/drinks";
-import { SongRepository } from "./database/SongRepository";
 import DatabaseManager from "./database/DatabaseManager";
 import { Constants } from "./config/Constants";
+import "./sanchezbot/sanchezbot"
 
 const app = express();
 const port = 3000;
 
-DatabaseManager.connectToDatabase().then(() => {
-    console.log("populating database");
-    SongRepository.populateFromJsonFile();
-});
+DatabaseManager.connectToDatabase()
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
