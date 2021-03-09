@@ -1,17 +1,20 @@
 import express from "express";
-import { SongRepository } from "../database/SongRepository";
-import { FileManager } from "../file/FileManager";
+import { SongRepository } from "../database/song-repository";
 import { Constants } from "../config/Constants";
+import { Song } from "../models/song";
 
-export class SongsRouter {
+export class SongRouter {
     public router = express.Router();
+
+    // Static variable holding current song in memory. Not persistent
+    private static currentSong: Song;
 
     constructor() { }
 
     public createRoutes() {
         this.router.route("/song/list")
             .get(async function (req, res) {
-                console.log("[SongsRouter] [GET] /song/list");
+                console.log("[SongRouter] [GET] /song/list");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
@@ -30,7 +33,7 @@ export class SongsRouter {
                 res.send(songListJson);
             })
             .post(async function (req, res) {
-                console.log("[SongsRouter] [POST] /song/list");
+                console.log("[SongRouter] [POST] /song/list");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -59,7 +62,7 @@ export class SongsRouter {
 
         this.router.route("/song/data")
             .get(async function (req, res) {
-                console.log("[SongsRouter]:/song/data");
+                console.log("[SongRouter]:/song/data");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
@@ -68,7 +71,7 @@ export class SongsRouter {
                 res.send(songDataJson);
             })
             .post(async function (req, res) {
-                console.log("[SongsRouter] [POST] /song/data");
+                console.log("[SongRouter] [POST] /song/data");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -96,11 +99,42 @@ export class SongsRouter {
         this.router
             .route("/song/current")
             .get(function (req, res) {
-                console.log("[SongsRouter] [GET] /song/current");
-                res.send("Get the current song");
+                console.log("[SongRouter] [GET] /song/current");
+
+                res.setHeader(
+                    Constants.HTTP_HEADER_CONTENT_TYPE,
+                    Constants.HTTP_HEADER_CONTENT_TYPE_HTML
+                );
+
+                if (SongRouter.currentSong) {
+                    let artistComposerString = SongRouter.currentSong.artist;
+                    if (SongRouter.currentSong.artist != SongRouter.currentSong.composer) {
+                        artistComposerString = `${SongRouter.currentSong.artist} (${SongRouter.currentSong.composer})`
+                    }
+                    res.send(`<!DOCTYPE HTML>
+<html>
+    <body>
+        <div class="label">Current song:</div>
+        <div class="data">${artistComposerString}</div>
+        <div class="data">"${SongRouter.currentSong.title}"</div>
+        <div class="data">${SongRouter.currentSong.album} (${SongRouter.currentSong.year})</div>
+    </body>
+</html>
+                `);
+                } else {
+                    res.send(`<!DOCTYPE HTML>
+<html>
+    <body>
+        <div class="label">Current song:</div>
+        <div class="data">[None]</div>
+    </body>
+</html>
+                `);
+
+                }
             })
             .post(function (req, res) {
-                console.log("[SongsRouter] [POST] /song/current");
+                console.log("[SongRouter] [POST] /song/current");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -115,15 +149,7 @@ export class SongsRouter {
                 try {
                     console.log(req.body || "body: null");
                     const song = req.body;
-
-                    // TODO: Ensure song exists in songlist (so as not to update current song to arbitrary value)
-
-                    response.success = FileManager.setCurrentSong(
-                        Constants.CURRENTSONG_TXT,
-                        Constants.ENCODING_UTF8,
-                        song
-                    );
-
+                    SongRouter.currentSong = song;
                     res.send(JSON.stringify(response));
                 } catch {
                     console.log(`Error occurred updating current song to:\n${currentSongText}`);
@@ -131,7 +157,7 @@ export class SongsRouter {
                 }
             })
             .delete(function (req, res) {
-                console.log("[SongsRouter] [DELETE] /song/current");
+                console.log("[SongRouter] [DELETE] /song/current");
             });
     }
 }

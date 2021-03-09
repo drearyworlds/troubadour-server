@@ -2,15 +2,22 @@ import dotenv from "dotenv"
 import tmi from "tmi.js"
 import { Constants } from "./constants"
 
-const discordMessage = "Join the Other Dreary Worlds Discord to connect outside of stream. You can suggest songs and drinks, view pictures of me and maybe other puppers, too. https://discord.gg/afmvH6W";
-const iAmSanchezMessage = "I am Sanchez.";
-const julietteMessage = "Mi hermana and la hija de papá. She will sit sometimes. Or sing sometimes. Or pick me up when I am sleeping.";
-const meganMessage = "@meganeggncheese is my Mami. She is also a good mod, like I am a good boy. Gracias for supporting Papi and his stream.";
+const julietteMessage = "Mi hermana. She will sit sometimes. Or sing sometimes. Or pick me up when I am sleeping.";
+const meganMessage = "@meganeggncheese is Mami. She is a good mod, like I am a good boy. Gracias for supporting Papi and his stream.";
 const sanchezMessage = "I am Sanchez. Why did you invoke my command? I am likely taking a nap. You do not wake me.";
 const siestaMessage = "Zzzzzzzzzzzzzz....";
-const tacoMessage = "I mostly eat burritos. You will make me one."
+const tacoMessage = "I mostly eat burritos. You will make me one"
 
-const songRequestMessage = "To request a song for Papi to sing, type !sr [song title], or go to this link to browse the list, yes: https://www.streamersonglist.com/t/drearyworlds/songs";
+// Interval messages
+const iAmSanchezMessage = "I am Sanchez.";
+
+const discordMessage = "Join the Other Dreary Worlds Discord to connect outside of stream. You can suggest songs, games, and drinks, view pictures of me and maybe other puppers, too. https://discord.gg/afmvH6W. I am Sanchez.";
+
+// Music stream only
+const songRequestMessage = "To request a song, type !sr [song title], or go to this link to browse the list, yes: https://www.streamersonglist.com/t/drearyworlds/songs. I am Sanchez";
+
+// Game stream only
+const joinDrearylandMessage = "To play along on Drearyland, join the Other Dreary Worlds Discord server! https://discord.gg/afmvH6W. Choose the games role in the #get-roles channel, then head to the #how-to-join channel for rules and instructions! I am Sanchez."
 
 dotenv.config()
 
@@ -131,11 +138,22 @@ setInterval(() => {
     }
 }, Constants.THIRTY_ONE_MINUTES_IN_MS)
 
-setInterval(() => {
-    try {
-        client.say(process.env.TWITCH_CHANNEL_NAME, songRequestMessage);
-        console.log(`* Executed songRequest command`);
-    } catch {
-        console.log("Exception running discord command")
-    }
-}, Constants.TWENTY_NINE_MINUTES_IN_MS)
+if (process.env.MUSIC_STREAM) {
+    setInterval(() => {
+        try {
+            client.say(process.env.TWITCH_CHANNEL_NAME, songRequestMessage);
+            console.log(`* Executed songRequest command`);
+        } catch {
+            console.log("Exception running discord command")
+        }
+    }, Constants.TWENTY_NINE_MINUTES_IN_MS)
+} else {
+    setInterval(() => {
+        try {
+            client.say(process.env.TWITCH_CHANNEL_NAME, joinDrearylandMessage);
+            console.log(`* Executed songRequest command`);
+        } catch {
+            console.log("Exception running discord command")
+        }
+    }, Constants.TWENTY_NINE_MINUTES_IN_MS)
+}

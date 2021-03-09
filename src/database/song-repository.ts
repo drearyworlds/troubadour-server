@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
-import { Song, schema as SongSchema } from "../models/Song";
-import { FileManager } from "../file/FileManager";
-import { Constants } from "../config/Constants";
-import Configuration from "../config/Configuration"
+import { Song, SongSchema } from "../models/song";
 
 export class SongRepository {
     private static SongModel = mongoose.model("Song", SongSchema);

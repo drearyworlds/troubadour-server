@@ -1,8 +1,8 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { SongsRouter } from "./routes/songs";
-import { router as DrinksRouter } from "./routes/drinks";
-import DatabaseManager from "./database/DatabaseManager";
+import { SongRouter } from "./routes/song-router";
+import { DrinkRouter } from "./routes/drink-router";
+import DatabaseManager from "./database/database-manager";
 import { Constants } from "./config/Constants";
 import "./sanchezbot/sanchezbot"
 
@@ -24,15 +24,17 @@ app.use(function (req, res, next) {
 
 app.get("/", (req, res) => {
     res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_TEXT);
-    res.send("Send a GET request to /songlist /drinklist to retrieve the song or drink list");
+    res.send("Send a GET request to /song/list /drink/list to retrieve the song or drink list");
 });
 
-const songsRouter: SongsRouter = new SongsRouter();
-songsRouter.createRoutes();
-app.use("/", songsRouter.router);
+const songRouter: SongRouter = new SongRouter();
+songRouter.createRoutes();
+app.use("/", songRouter.router);
 
-app.use("/", DrinksRouter);
+const drinkRouter: DrinkRouter = new DrinkRouter();
+drinkRouter.createRoutes();
+app.use("/", drinkRouter.router);
 
 app.listen(port, () => {
-    return console.log(`songlistserver is listening on ${port}`);
+    return console.log(`Troubadour server is listening on ${port}`);
 });

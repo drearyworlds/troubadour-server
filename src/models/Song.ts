@@ -1,30 +1,41 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-export class Song {
-    id : Number
-    title: String
-    artist: String
-    album: String
-    year: Number
-    tuning: String
-    pick: Boolean
-    capo: Number
-    active: Boolean
-    suggestedBy: String
-    lyrics: String
+interface SsSong {
+    artist: string;
+    title: string;
+    album: string;
+    year: number;
+    capo: number;
+    active: boolean;
+    comment: string;
+    lyrics: string;
+    chords: string;
+    tab: string;
 }
 
-export const schema = new Schema({
-    id: Number,
-    title: String,
+export interface Song extends SsSong {
+    id?: number;
+    tuning: string;
+    pick: boolean;
+    composer : string;
+    suggestedBy: String;
+}
+
+export const SongSchema = new Schema({
     artist: String,
+    title: String,
     album: String,
     year: Number,
-    tuning: String,
-    pick: Boolean,
     capo: Number,
     active: Boolean,
-    suggestedBy: String,
-    lyrics: String
+    comment: String,
+    lyrics: String,
+    chords: String,
+    tab: String,
+
+    id: Number,
+    tuning: String,
+    pick: Boolean,
+    composer : String
 });
