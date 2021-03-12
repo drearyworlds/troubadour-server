@@ -10,11 +10,4 @@ export class Constants {
     static HTTP_CORS_ORIGIN_STAR = "*";
     static HTTP_CORS_HEADERS_ALLOWED = "Origin, X-Requested-With, Content-Type, Accept";
     static ENCODING_UTF8: "utf8" = "utf8";
-
-    static SONGS_PATH = `${Configuration.getDataPath()}songs/`;
-    static SONGLIST_JSON = `${Configuration.getDataPath()}songList.json`;
-    static CURRENTSONG_TXT = `${Configuration.getDataPath()}currentsong.txt`;
-
-    static DRINKLIST_JSON = `${Configuration.getDataPath()}drinkList.json`;
-    static CURRENTDRINK_TXT = `${Configuration.getDataPath()}currentdrink.txt`;
 }

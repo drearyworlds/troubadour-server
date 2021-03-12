@@ -15,9 +15,9 @@ export class DrinkRouter {
     public createRoutes() {
         this.router.route("/drink/list")
             .get((req, res) => {
-                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
-                const contents = fs.readFileSync(Constants.DRINKLIST_JSON, Constants.ENCODING_UTF8);
-                res.send(contents);
+                // res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
+                // const contents = fs.readFileSync(Constants.DRINKLIST_JSON, Constants.ENCODING_UTF8);
+                // res.send(contents);
             });
 
 
