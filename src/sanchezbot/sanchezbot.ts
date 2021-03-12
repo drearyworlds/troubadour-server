@@ -2,158 +2,176 @@ import dotenv from "dotenv"
 import tmi from "tmi.js"
 import { Constants } from "./constants"
 
-const julietteMessage = "Mi hermana. She will sit sometimes. Or sing sometimes. Or pick me up when I am sleeping.";
-const meganMessage = "@meganeggncheese is Mami. She is a good mod, like I am a good boy. Gracias for supporting Papi and his stream.";
-const sanchezMessage = "I am Sanchez. Why did you invoke my command? I am likely taking a nap. You do not wake me.";
-const siestaMessage = "Zzzzzzzzzzzzzz....";
-const tacoMessage = "I mostly eat burritos. You will make me one"
+export class SanchezBot {
+    // The client that connects to Twitch
+    client: tmi;
 
-// Interval messages
-const iAmSanchezMessage = "I am Sanchez.";
+    musicStream: boolean = false
 
-const discordMessage = "Join the Other Dreary Worlds Discord to connect outside of stream. You can suggest songs, games, and drinks, view pictures of me and maybe other puppers, too. https://discord.gg/afmvH6W. I am Sanchez.";
+    static commands: Map<string, string>;
 
-// Music stream only
-const songRequestMessage = "To request a song, type !sr [song title], or go to this link to browse the list, yes: https://www.streamersonglist.com/t/drearyworlds/songs. I am Sanchez";
+    constructor() {
+    }
 
-// Game stream only
-const joinDrearylandMessage = "To play along on Drearyland, join the Other Dreary Worlds Discord server! https://discord.gg/afmvH6W. Choose the games role in the #get-roles channel, then head to the #how-to-join channel for rules and instructions! I am Sanchez."
+    calculateStreamType() {
+        const dayOfWeek = new Date().getDay();
 
-dotenv.config()
+        if (dayOfWeek == Constants.SATURDAY) {
+            this.musicStream = true;
+        } else if (dayOfWeek == Constants.MONDAY) {
+            this.musicStream = false;
+        } else {
+            console.error("WARNING!!! NOT MONDAY OR SATURDAY. ASSUMING GAME STREAM. ENSURE CORRECT STREAM TYPE!")
+            this.musicStream = false;
+        }
+    }
 
-// Define configuration options
-const opts = {
-    identity: {
-        username: process.env.TWITCH_BOT_USERNAME,
-        password: process.env.TWITCH_BOT_TOKEN
-    },
-    channels: [
-        process.env.TWITCH_CHANNEL_NAME
-    ]
-};
+    initializeMessage() {
+        SanchezBot.commands["!juliette"] = "Mi hermana. She will sit sometimes. Or sing sometimes. Or pick me up when I am sleeping.";
+        SanchezBot.commands["!megan"] = "@meganeggncheese is Mami. She is a good mod, like I am a good boy. Gracias for supporting Papi and his stream.";
+        SanchezBot.commands["!sanchez"] = "I am Sanchez. Why did you invoke my command? I am likely taking a nap. You do not wake me.";
 
-// Create a client with our options
-const client = new tmi.client(opts);
+        SanchezBot.commands["!siesta"] = "Zzzzzzzzzzzzzz....";
+        SanchezBot.commands["!taco"] = "I mostly eat burritos. You will make me one"
+        SanchezBot.commands["!iAmSanchez"] = "I am Sanchez.";
+        SanchezBot.commands["!discord"] = "Join the Other Dreary Worlds Discord to connect outside of stream. You can suggest songs, games, and drinks, view pictures of me and maybe other puppers, too. https://discord.gg/afmvH6W.";
 
-// Register our event handlers (defined below)
-client.on('message', onMessageHandler);
-client.on('connected', onConnectedHandler);
+        if (this.musicStream) {
+            SanchezBot.commands["!songRequest"] = "To request a song, type !sr [song title], or go to this link to browse the list, yes: https://www.streamersonglist.com/t/drearyworlds/songs.";
+        } else {
+            SanchezBot.commands["!minecraft"] = "To play along on Drearyland, join the Other Dreary Worlds Discord server! https://discord.gg/afmvH6W. Choose the games role in the #get-roles channel, then head to the #how-to-join channel for rules and instructions!"
+        }
 
-// Connect to Twitch:
-client.connect();
+        SanchezBot.commands["!commands"] = `${SanchezBot.commands["!sanchez"]} Here are the commands you will give to me: ${SanchezBot.commands.keys.toString()}`;
+    }
 
-// Called every time a message comes in
-function onMessageHandler(target, context, msg, self) {
-    try {
-        if (self) { return; } // Ignore messages from the bot
+    initialize() {
+        this.calculateStreamType();
+        this.initializeMessage();
 
-        // Remove whitespace from chat message
-        const commandName = msg.trim();
-        let executed = false;
+        dotenv.config()
 
-        if (commandName.startsWith("!")) {
-            switch (commandName) {
-                // If the command is known, let's execute it
-                case "!dice":
-                    const num = rollDice(2, 6);
-                    client.say(target, `You rolled ${num}. ${iAmSanchezMessage}`);
-                    executed = true;
-                    break;
-                case '!taco':
-                    client.say(target, `${tacoMessage} ${iAmSanchezMessage}`);
-                    executed = true;
-                    break;
-                case '!siesta':
-                    client.say(target, `${siestaMessage}`);
-                    executed = true;
-                    break;
-                case '!discord':
-                    client.say(target, `${discordMessage} ${iAmSanchezMessage}`);
-                    executed = true;
-                    break;
-                case '!juliette':
-                    client.say(target, `${julietteMessage} ${iAmSanchezMessage}`);
-                    executed = true;
-                    break;
-                case '!megan':
-                    client.say(target, `${meganMessage} ${iAmSanchezMessage}`);
-                    executed = true;
-                    break;
-                case '!sanchez':
-                    client.say(target, `${sanchezMessage}`);
-                    executed = true;
-                    break;
-                case '!songrequest':
-                    client.say(target, `${songRequestMessage} ${iAmSanchezMessage}`);
-                    executed = true;
-                    break;
-                default:
-                    console.log(`* Unknown command ${commandName}`);
-                    break;
+        // Define configuration options
+        const opts = {
+            identity: {
+                username: process.env.TWITCH_BOT_USERNAME,
+                password: process.env.TWITCH_BOT_TOKEN
+            },
+            channels: [
+                process.env.TWITCH_CHANNEL_NAME
+            ]
+        };
+
+        // Create a client with our options
+        this.client = new tmi.client(opts);
+        this.client.on('connected', this.onConnectedHandler);
+        this.client.connect();
+        this.client.on('message', this.onMessageHandler);
+
+        this.setUpCommonIntervalCommands();
+
+        if (this.musicStream) {
+            this.setUpMusicStreamIntervalCommands();
+        } else {
+            this.setUpGameStreamIntervalCommands();
+        }
+    }
+
+    // Called every time the bot connects to Twitch chat
+    onConnectedHandler(addr, port) {
+        console.log(`* Connected to ${addr}:${port}`);
+    }
+
+    executePredefinedCommand(target: string, commandName: string) {
+        try {
+            this.client.say(target, SanchezBot.commands[commandName])
+            return true;
+        } catch {
+            console.log(`Exception running ${commandName} command`)
+        }
+
+        return false;
+    }
+
+    executeCalculatedCommand(target: string, commandName: string) {
+        try {
+            if (commandName == "!dice") {
+                this.client.say(target, `${this.getDiceCommand()} ${SanchezBot.commands["!sanchez"]}`);
+                return true;
             }
-        }
-
-        if (executed) {
-            console.log(`* Executed ${commandName} command`);
-        }
-    } catch {
-        console.log('caught an exception processing a message')
-    }
-}
-
-// Function called when the "dice" command is issued
-function rollDice(number, sidesPerDie) {
-    let total = 0;
-    for (let num = 0; num < number; num++) {
-        total += rollDie(sidesPerDie);
-    }
-    return total;
-}
-
-// Function called when the "dice" command is issued
-function rollDie(sides) {
-    return Math.floor(Math.random() * sides) + 1;
-}
-
-// Called every time the bot connects to Twitch chat
-function onConnectedHandler(addr, port) {
-    console.log(`* Connected to ${addr}:${port}`);
-}
-
-setInterval(() => {
-    try {
-        client.say(process.env.TWITCH_CHANNEL_NAME, iAmSanchezMessage);
-        console.log(`* Executed iAmSanchez command`);
-    } catch {
-        console.log("Exception running iAmSanchez command")
-    }
-}, Constants.ONE_HOUR_IN_MS)
-
-setInterval(() => {
-    try {
-        client.say(process.env.TWITCH_CHANNEL_NAME, discordMessage);
-        console.log(`* Executed discord command`);
-    } catch {
-        console.log("Exception running discord command")
-    }
-}, Constants.THIRTY_ONE_MINUTES_IN_MS)
-
-if (process.env.MUSIC_STREAM) {
-    setInterval(() => {
-        try {
-            client.say(process.env.TWITCH_CHANNEL_NAME, songRequestMessage);
-            console.log(`* Executed songRequest command`);
         } catch {
-            console.log("Exception running discord command")
+            console.log(`Exception running ${commandName} command`)
         }
-    }, Constants.TWENTY_NINE_MINUTES_IN_MS)
-} else {
-    setInterval(() => {
+
+        return false;
+    }
+
+    handleCommand(target: string, commandName: string) {
+        let executed: boolean = false;
+
+        let commandText = SanchezBot.commands[commandName];
+        if (commandText != null) {
+            executed = this.executePredefinedCommand(target, commandName)
+        } else {
+            executed = this.executeCalculatedCommand(target, commandName)
+        }
+
+        return executed;
+    }
+
+    // Called every time a message comes in
+    onMessageHandler(target, context, message, self) {
         try {
-            client.say(process.env.TWITCH_CHANNEL_NAME, joinDrearylandMessage);
-            console.log(`* Executed songRequest command`);
+            if (self) { return; } // Ignore messages from the bot
+
+            // Remove whitespace from chat message
+            const commandName = message.trim();
+            let executed = false;
+
+            if (commandName.startsWith("!")) {
+                executed = this.handleCommand(target, commandName);
+
+                if (executed) {
+                    console.log(`* Executed ${commandName} command`);
+                } else {
+                    console.log(`* Failed to execute ${commandName} command`)
+                }
+            }
         } catch {
-            console.log("Exception running discord command")
+            console.log(`Caught an exception processing a message: ${message}`)
         }
-    }, Constants.TWENTY_NINE_MINUTES_IN_MS)
+    }
+
+    // Function called when the "dice" command is issued
+    rollDie(sides) {
+        return Math.floor(Math.random() * sides) + 1;
+    }
+
+    getDiceCommand() {
+        const die1 = this.rollDie(6);
+        const die2 = this.rollDie(6);
+        return `You rolled a ${die1} and a ${die2}. That is ${die1 + die2}.`;
+    }
+
+    setUpCommonIntervalCommands() {
+        setInterval(() => {
+            this.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!sanchez")
+        }, Constants.ONE_HOUR_IN_MS)
+
+        setInterval(() => {
+            this.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!discord")
+        }, Constants.THIRTY_ONE_MINUTES_IN_MS)
+    }
+
+    setUpGameStreamIntervalCommands() {
+        setInterval(() => {
+            this.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!minecraft")
+        }, Constants.TWENTY_NINE_MINUTES_IN_MS)
+    }
+
+    setUpMusicStreamIntervalCommands() {
+        setInterval(() => {
+            this.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!songrequest")
+        }, Constants.TWENTY_NINE_MINUTES_IN_MS)
+    }
 }
