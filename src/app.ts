@@ -5,9 +5,14 @@ import { DrinkRouter } from "./routes/drink-router";
 import DatabaseManager from "./database/database-manager";
 import { Constants } from "./config/Constants";
 import "./sanchezbot/sanchezbot"
+import { SanchezBot } from "./sanchezbot/sanchezbot";
 
 const app = express();
 const port = 3000;
+
+// Initialize bot
+let sanchezBot : SanchezBot = new SanchezBot()
+sanchezBot.initialize()
 
 DatabaseManager.connectToDatabase()
 
