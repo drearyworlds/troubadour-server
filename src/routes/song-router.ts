@@ -86,7 +86,7 @@ export class SongRouter {
                 try {
                     console.log(req.body || "body: null");
                     const song = req.body;
-        
+
                     response.success = await SongRepository.updateOrInsertSong(song)
 
                     res.send(JSON.stringify(response));
@@ -108,11 +108,13 @@ export class SongRouter {
 
                 if (SongRouter.currentSong) {
                     let artistComposerString = SongRouter.currentSong.artist;
-                    if (SongRouter.currentSong.artist != SongRouter.currentSong.composer) {
+                    if (SongRouter.currentSong.composer != undefined
+                        && SongRouter.currentSong.artist != SongRouter.currentSong.composer) {
                         artistComposerString = `${SongRouter.currentSong.artist} (${SongRouter.currentSong.composer})`
                     }
                     res.send(`<!DOCTYPE HTML>
 <html>
+    <meta http-equiv="refresh" content="3">
     <body>
         <div class="label">Current song:</div>
         <div class="data">${artistComposerString}</div>
@@ -124,6 +126,7 @@ export class SongRouter {
                 } else {
                     res.send(`<!DOCTYPE HTML>
 <html>
+    <meta http-equiv="refresh" content="3">
     <body>
         <div class="label">Current song:</div>
         <div class="data">[None]</div>

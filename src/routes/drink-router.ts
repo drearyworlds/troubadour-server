@@ -109,6 +109,7 @@ export class DrinkRouter {
                 if (DrinkRouter.currentDrink) {
                     res.send(`<!DOCTYPE HTML>
 <html>
+    <meta http-equiv="refresh" content="3">
     <body>
         <div class="label">Current drink:</div>
         <div class="data">${DrinkRouter.currentDrink.name} ${DrinkRouter.currentDrink.style}</div>
@@ -120,6 +121,7 @@ export class DrinkRouter {
                 } else {
                     res.send(`<!DOCTYPE HTML>
 <html>
+    <meta http-equiv="refresh" content="3">
     <body>
         <div class="label">Current drink:</div>
         <div class="data">[None]</div>
