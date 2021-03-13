@@ -8,7 +8,10 @@ export class SanchezBot {
 
     static musicStream: boolean = false
 
-    static commands: Map<string, string> = new Map<string, string>();
+    static predefinedCommands: Map<string, string> = new Map<string, string>();
+    static calculatedCommands: Array<string> = new Array<string>();
+    static sanchezCommandMessages: Array<string> = new Array<string>();
+
 
     constructor() {
         console.log("constructor")
@@ -35,7 +38,18 @@ export class SanchezBot {
         let commandList: string = "";
         let firstCommand: boolean = true;
 
-        SanchezBot.commands.forEach((message: string, command: string) => {
+        SanchezBot.predefinedCommands.forEach((message: string, command: string) => {
+            if (firstCommand) {
+                firstCommand = false;
+            } else {
+                commandList += ", ";
+            }
+
+            console.log(`Adding ${command} to commandList`)
+            commandList += command;
+        });
+
+        SanchezBot.calculatedCommands.forEach((command: string) => {
             if (firstCommand) {
                 firstCommand = false;
             } else {
@@ -53,21 +67,36 @@ export class SanchezBot {
     static initializeMessages() {
         console.log("initializeMessages")
 
-        SanchezBot.commands.set("!juliette", "Mi hermana. She will sit sometimes. Or sing sometimes. Or pick me up when I am sleeping.");
-        SanchezBot.commands.set("!megan", "@meganeggncheese is Mami. She is a good mod, like I am a good boy. Gracias for supporting Papi and his stream.");
-        SanchezBot.commands.set("!siesta", "Zzzzzzzzzzzzzz....");
-        SanchezBot.commands.set("!taco", "I mostly eat burritos. You will make me one");
-        SanchezBot.commands.set("!sanchez", "I am Sanchez.");
-        SanchezBot.commands.set("!discord", "Join the Other Dreary Worlds Discord to connect outside of stream. You can suggest songs, games, and drinks, view pictures of me and maybe other puppers, too. https://discord.gg/afmvH6W.");
+        SanchezBot.predefinedCommands.set("!juliette", "Mi hermana. She will sit sometimes. Or sing sometimes. Or pick me up when I am sleeping.");
+        SanchezBot.predefinedCommands.set("!megan", "@meganeggncheese is Mami. She is a good mod, like I am a good boy. Gracias for supporting Papi and his stream.");
+        SanchezBot.predefinedCommands.set("!discord", "Join the Other Dreary Worlds Discord to connect outside of stream. You can suggest songs, games, and drinks, view pictures of me and maybe other puppers, too. https://discord.gg/afmvH6W.");
 
         if (SanchezBot.musicStream) {
-            SanchezBot.commands.set("!songRequest", "To request a song, type !sr .set(song title], or go to this link to browse the list, yes: https://www.streamersonglist.com/t/drearyworlds/songs.");
+            SanchezBot.predefinedCommands.set("!songrequest", `To request a song, you will type "!sr song title", like "!sr Calle Ocho", or go to this link to browse the list, yes: https://www.streamersonglist.com/t/drearyworlds/songs.`);
         } else {
-            SanchezBot.commands.set("!minecraft", "To play along on Drearyland, join the Other Dreary Worlds Discord server! https://discord.gg/afmvH6W. Choose the games role in the #get-roles channel, then head to the #how-to-join channel for rules and instructions!");
+            SanchezBot.predefinedCommands.set("!minecraft", "To play along on Drearyland, join the Other Dreary Worlds Discord server! https://discord.gg/afmvH6W. Choose the games role in the #get-roles channel, then head to the #how-to-join channel for rules and instructions!");
         }
 
+        SanchezBot.calculatedCommands.push("!dice")
+        SanchezBot.calculatedCommands.push("!sanchez")
+
         let commandList: string = SanchezBot.getCommandList();
-        SanchezBot.commands.set("!commands", `${SanchezBot.commands.get("!sanchez")} Here are the commands you will give to me: ${commandList} `);
+        SanchezBot.predefinedCommands.set("!commands", `Here are the commands you will give to me: ${commandList}. `);
+
+        // Random Sanchez thoughts
+        SanchezBot.sanchezCommandMessages.push("Zzzzzzzzzzzzzz....  burritos.....zzz.. tacos..... you will do this for me..... zzzz...");
+        SanchezBot.sanchezCommandMessages.push("I like tacos and burritos. You will make me some. You will do this for me.");
+        SanchezBot.sanchezCommandMessages.push("I am Sanchez.");
+        SanchezBot.sanchezCommandMessages.push("I am truly The Chosen Sanchez.");
+        SanchezBot.sanchezCommandMessages.push("Calle Ocho is my favorite song. You will play this for me.");
+        SanchezBot.sanchezCommandMessages.push("Yo quiero Taco Bell...");
+        SanchezBot.sanchezCommandMessages.push("You will follow papi.. You will press the heart icon to do this, yes.");
+        SanchezBot.sanchezCommandMessages.push("You will subscribe to papi. You will do this for me.");
+        SanchezBot.sanchezCommandMessages.push("I like to play with my squeaky carrot sometimes. I will not play unless I want to.");
+        SanchezBot.sanchezCommandMessages.push("Is it 5:30 yet? 5:30 is dinner time.")
+        SanchezBot.sanchezCommandMessages.push("Was that the doorbell?! I will protect you! *bark!* *bark!* *bark!*")
+        SanchezBot.sanchezCommandMessages.push("Stop waking me up with this music, papi.. I am taking a siesta.")
+
     }
 
     initialize() {
@@ -109,11 +138,12 @@ export class SanchezBot {
         console.log(`Connected to ${addr}: ${port} `);
     }
 
-    static executePredefinedCommand(target: any, commandName: string) {
-        console.log("executePredefinedCommand")
+    static executePredefinedCommand(target: string, commandName: string) {
+        console.log(`executePredefinedCommand ${commandName}`)
 
         try {
-            SanchezBot.client.say(target, SanchezBot.commands.get(commandName))
+            let commandText: string = `${SanchezBot.predefinedCommands.get(commandName)} I am Sanchez.`
+            SanchezBot.client.say(target, commandText)
             return true;
         } catch (e) {
             console.error(`Caught an exception running predefined command ${commandName}: ${e} `)
@@ -122,13 +152,15 @@ export class SanchezBot {
         return false;
     }
 
-    static executeCalculatedCommand(target: any, commandName: string) {
+    static executeCalculatedCommand(target: string, commandName: string) {
         console.log("executeCalculatedCommand")
 
         try {
             if (commandName == "!dice") {
-                SanchezBot.client.say(target, `${SanchezBot.getDiceCommand()} ${SanchezBot.commands.get("!sanchez")} `);
+                SanchezBot.client.say(target, `${SanchezBot.getDiceCommand()} I am Sanchez.`);
                 return true;
+            } else if (commandName == "!sanchez") {
+                SanchezBot.client.say(target, `${SanchezBot.getSanchezCommand()}`);
             }
         } catch (e) {
             console.error(`Caught an exeption running calculated command ${commandName} : ${e} `)
@@ -137,12 +169,12 @@ export class SanchezBot {
         return false;
     }
 
-    static handleCommand(target: any, commandName: any) {
+    static handleCommand(target: string, commandName: string) {
         console.log(`handleCommand: ${commandName} `)
 
         let executed: boolean = false;
 
-        if (SanchezBot.commands.has(commandName)) {
+        if (SanchezBot.predefinedCommands.has(commandName)) {
             executed = SanchezBot.executePredefinedCommand(target, commandName)
         } else {
             executed = SanchezBot.executeCalculatedCommand(target, commandName)
@@ -187,7 +219,13 @@ export class SanchezBot {
 
         const die1 = SanchezBot.rollDie(6);
         const die2 = SanchezBot.rollDie(6);
-        return `You rolled a ${die1} and a ${die2}.That is ${die1 + die2}.`;
+        return `You rolled a ${die1} and a ${die2}. That is ${die1 + die2}.`;
+    }
+
+    static getSanchezCommand() {
+        let randomIndex = Math.floor((Math.random() * SanchezBot.sanchezCommandMessages.length));
+        console.log(`Random index: ${randomIndex}`)
+        return SanchezBot.sanchezCommandMessages[randomIndex];
     }
 
     static setUpCommonIntervalCommands() {
