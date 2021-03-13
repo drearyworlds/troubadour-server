@@ -1,5 +1,6 @@
 import fs from "fs";
 import mongoose from "mongoose";
+import Configuration from "../config/Configuration"
 
 class DatabaseManager {
     private static instance: DatabaseManager;
@@ -16,7 +17,7 @@ class DatabaseManager {
     }
 
     public async connectToDatabase() {
-        await mongoose.connect("mongodb://localhost/my_database", {
+        await mongoose.connect(Configuration.getDatabaseConnectionString(), {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false,

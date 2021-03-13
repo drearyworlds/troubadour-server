@@ -14,11 +14,15 @@ class Configuration {
         }
     }
 
-    static getInstance(): Configuration {
+    public static getInstance(): Configuration {
         if (!Configuration.instance) {
             Configuration.instance = new Configuration();
         }
         return Configuration.instance;
+    }
+
+    public getDatabaseConnectionString() {
+        return this.databaseConnectionString;
     }
 }
 

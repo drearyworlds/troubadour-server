@@ -1,43 +1,44 @@
 import express from "express";
-import { Constants } from "../config/Constants";
 import { DrinkRepository } from "../database/drink-repository";
+import { Constants } from "../config/Constants";
 import { Drink } from "../models/drink";
-import fs from "fs";
 
 export class DrinkRouter {
     public router = express.Router();
 
-    // Static variable holding current song in memory. Not persistent
+    // Static variable holding current drink in memory. Not persistent
     private static currentDrink: Drink;
 
     constructor() { }
 
     public createRoutes() {
         this.router.route("/drink/list")
-            .get((req, res) => {
-                // res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
-                // const contents = fs.readFileSync(Constants.DRINKLIST_JSON, Constants.ENCODING_UTF8);
-                // res.send(contents);
-            });
-
-
-        this.router.route("/drink/current")
-            .get((req, res) => {
+            .get(async function (req, res) {
+                console.log("[DrinkRouter] [GET] /drink/list");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
                 );
 
-                try {
-                    DrinkRouter.currentDrink = null;
-                    let currentDrinkText = `${DrinkRouter.currentDrink["name"]}\n${DrinkRouter.currentDrink["style"]}\n${DrinkRouter.currentDrink["brewery"]} (${DrinkRouter.currentDrink["city"]})`;
-                    res.send(currentDrinkText);
-                } catch {
-                    res.send(`Error clearing current drink`);
-                }
+                let drinksArray = [];
+                drinksArray = await DrinkRepository.getDrinkList();
+
+                const drinkList = {
+                    drinks: drinksArray
+                };
+
+                console.log(`Retrieved drinkList from db [${drinkList.drinks.length} entries]`)
+
+                const drinkListJson = JSON.stringify(drinkList);
+                res.send(drinkListJson);
             })
-            .post((req, res) => {
-                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
+            .post(async function (req, res) {
+                console.log("[DrinkRouter] [POST] /drink/list");
+
+                res.setHeader(
+                    Constants.HTTP_HEADER_CONTENT_TYPE,
+                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
+                );
 
                 let currentDrinkText = ``;
                 let response = {
@@ -45,27 +46,114 @@ export class DrinkRouter {
                 };
 
                 try {
-                    const drink = req.body;
-                    DrinkRouter.currentDrink = drink;
+                    console.log(`body: ${req.body}` || "body: null");
+                    const jsonDrinkList: string = JSON.stringify(req.body);
 
-                    currentDrinkText = `${drink["name"]}\n${drink["style"]}\n${drink["brewery"]} (${drink["city"]})`;
-                    console.log(`Current drink updated to:\n${currentDrinkText}`);
-                    response.success = true;
+                    console.log(`jsonDrinkList: ${jsonDrinkList}`)
+
+                    response.success = await DrinkRepository.importDrinkListFromJson(jsonDrinkList);
+
+                    res.send(JSON.stringify(response));
+                } catch {
+                    console.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
+                    res.send(JSON.stringify(response));
+                }
+            });
+
+        this.router.route("/drink/data")
+            .get(async function (req, res) {
+                console.log("[DrinkRouter]:/drink/data");
+                res.setHeader(
+                    Constants.HTTP_HEADER_CONTENT_TYPE,
+                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
+                );
+                const drinkDataJson = await DrinkRepository.getDrinkData(+req.query.id);
+                res.send(drinkDataJson);
+            })
+            .post(async function (req, res) {
+                console.log("[DrinkRouter] [POST] /drink/data");
+
+                res.setHeader(
+                    Constants.HTTP_HEADER_CONTENT_TYPE,
+                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
+                );
+
+                let currentDrinkText = ``;
+                let response = {
+                    success: false
+                };
+
+                try {
+                    console.log(req.body || "body: null");
+                    const drink = req.body;
+        
+                    response.success = await DrinkRepository.updateOrInsertDrink(drink)
+
                     res.send(JSON.stringify(response));
                 } catch {
                     console.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
                     res.send(JSON.stringify(response));
                 }
             })
-            .delete((req, res) => {
-                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
+
+        this.router
+            .route("/drink/current")
+            .get(function (req, res) {
+                console.log("[DrinkRouter] [GET] /drink/current");
+
+                res.setHeader(
+                    Constants.HTTP_HEADER_CONTENT_TYPE,
+                    Constants.HTTP_HEADER_CONTENT_TYPE_HTML
+                );
+
+                if (DrinkRouter.currentDrink) {
+                    res.send(`<!DOCTYPE HTML>
+<html>
+    <body>
+        <div class="label">Current drink:</div>
+        <div class="data">${DrinkRouter.currentDrink.name} ${DrinkRouter.currentDrink.style}</div>
+        <div class="data">${DrinkRouter.currentDrink.brewery}</div>
+        <div class="data">${DrinkRouter.currentDrink.city}</div>
+    </body>
+</html>
+                `);
+                } else {
+                    res.send(`<!DOCTYPE HTML>
+<html>
+    <body>
+        <div class="label">Current drink:</div>
+        <div class="data">[None]</div>
+    </body>
+</html>
+                `);
+
+                }
+            })
+            .post(function (req, res) {
+                console.log("[DrinkRouter] [POST] /drink/current");
+
+                res.setHeader(
+                    Constants.HTTP_HEADER_CONTENT_TYPE,
+                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
+                );
+
+                let currentDrinkText = ``;
+                let response = {
+                    success: false
+                };
 
                 try {
-                    DrinkRouter.currentDrink = null;
-                    res.send(true);
+                    console.log(req.body || "body: null");
+                    const drink = req.body;
+                    DrinkRouter.currentDrink = drink;
+                    res.send(JSON.stringify(response));
                 } catch {
-                    res.send(`Error clearing current drink`);
+                    console.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
+                    res.send(JSON.stringify(response));
                 }
+            })
+            .delete(function (req, res) {
+                console.log("[DrinkRouter] [DELETE] /drink/current");
             });
     }
 }

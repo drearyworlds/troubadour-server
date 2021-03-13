@@ -86,8 +86,8 @@ export class SongRouter {
                 try {
                     console.log(req.body || "body: null");
                     const song = req.body;
-
-                    response.success = await SongRepository.updateSong(song)
+        
+                    response.success = await SongRepository.updateOrInsertSong(song)
 
                     res.send(JSON.stringify(response));
                 } catch {

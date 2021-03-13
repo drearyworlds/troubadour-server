@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 export interface Drink {
     id?: number;
     name: string;
-    style: boolean;
+    style: string;
     brewery : string;
     city: string;
 }
@@ -12,7 +12,7 @@ export interface Drink {
 export const DrinkSchema = new Schema({
     id: Number,
     name: String,
-    style: Boolean,
+    style: String,
     brewery : String,
     city: String
 });

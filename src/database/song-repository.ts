@@ -19,12 +19,7 @@ export class SongRepository {
         try {
             const songs: Song[] = JSON.parse(songListJson)["songs"];
             for (const song of songs) {
-                if (!await SongRepository.updateSong(song)) {
-                    console.log(`Adding new song to database`);
-                    SongRepository.addSong(song);
-                } else {
-                    console.log(`Updated song in database`);
-                }
+                await this.updateOrInsertSong(song)
             }
         } catch {
             console.log("Exception occurred importing songs")
@@ -39,10 +34,37 @@ export class SongRepository {
 
     }
 
-    public static async updateSong(songToUpdate: Song) : Promise<boolean> {
+    public static async updateOrInsertSong(songToUpdateOrInsert: Song) {
+        let success = false;
+
+        success = await SongRepository.updateSong(songToUpdateOrInsert)
+        if (success) {
+            console.log(`Successfully updated song in Song collection`);
+        } else {
+            success = await SongRepository.insertSong(songToUpdateOrInsert);
+            if (success) {
+                console.log(`Successfully added song to Song collection`);
+            }
+        }
+
+        return success;
+    }
+
+    public static async insertSong(songToAdd: Song) {
+        let success: boolean = false;
+        const songModel = new SongRepository.SongModel(songToAdd);
+        await songModel.save().then((v) => {
+            console.log(`Added song to Song collection: ${v}`);
+            success = true;
+        });
+
+        return success
+    }
+
+    public static async updateSong(songToUpdate: Song): Promise<boolean> {
         let success = false;
         const filter = { id: songToUpdate.id };
-        const result = await SongRepository.SongModel.findOneAndUpdate(filter, songToUpdate)
+        const result = await SongRepository.SongModel.findOneAndUpdate(filter, songToUpdate);
 
         if (result) {
             success = true;
@@ -50,13 +72,6 @@ export class SongRepository {
         }
 
         return success;
-    }
-
-    public static addSong(songToAdd: Song) {
-        const songModel = new SongRepository.SongModel(songToAdd);
-        songModel.save().then((v) => {
-            console.log(`Added song to Song collection: ${v}`);
-        });
     }
 
     public static async getSongList() {
