@@ -4,13 +4,15 @@
   "description": "",
   "main": "dist/main.js",
   "scripts": {
-    "copyHtml": "copy .\\src\\index.html .\\dist\\",
+    "clean": "rd /s /q .\\dist && rd /s /q .\\bin",
     "build": "tsc",
     "build-electron": "npm run build && npm run copyHtml",
+    "rebuild": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "copyHtml": "copy .\\src\\index.html .\\dist\\",
     "start": "npm run build && node dist/app.js",
     "start-electron": "npm run build-electron && electron .",
-    "make-electron-win": "electron-packager . troubadour-server --platform=win32 --arch=x64 --out=./dist"
+    "make-electron-win": "npm run build-electron && electron-packager . troubadour-server --platform=win32 --arch=x64 --out=./bin"
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,7 @@
     "@types/electron": "^1.6.10",
     "@types/express": "^4.16.1",
     "electron": "^12.0.1",
+    "electron-packager": "^15.2.0",
     "tslint": "^5.12.1",
     "typescript": "^4.1.5"
   },
