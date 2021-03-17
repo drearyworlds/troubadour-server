@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drearyworlds/songlistserver.git"
+    "url": "git+https://github.com/drearyworlds/troubadour-server.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/drearyworlds/songlistserver/issues"
+    "url": "https://github.com/drearyworlds/troubadour-server/issues"
   },
-  "homepage": "https://github.com/drearyworlds/songlistserver#readme",
+  "homepage": "https://github.com/drearyworlds/troubadour-server#readme",
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/express": "^4.16.1",
