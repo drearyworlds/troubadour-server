@@ -1,13 +1,25 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "module": "commonjs",
     "rootDir": "./src",
-    "esModuleInterop": true,
-    "target": "es6",
-    "moduleResolution": "node",
+    "baseUrl": "./",
+    "outDir": "./dist",
     "sourceMap": true,
-    "outDir": "dist",
+    "declaration": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
-    },
-  "lib": ["es2015"],
+    "target": "es6",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2015",
+      "es2018",
+      "dom"
+    ]
+  }
 }
