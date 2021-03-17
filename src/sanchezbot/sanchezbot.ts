@@ -232,7 +232,7 @@ export class SanchezBot {
         console.log("setUpCommonIntervalCommands")
 
         setInterval(() => {
-            SanchezBot.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!sanchez")
+            SanchezBot.executeCalculatedCommand(process.env.TWITCH_CHANNEL_NAME, "!sanchez")
         }, Constants.ONE_HOUR_IN_MS)
 
         setInterval(() => {
