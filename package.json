@@ -14,7 +14,7 @@
     "start": "npm run build && node dist/app.js",
     "pack": "electron-builder --dir",
     "dist": "npm run build-electron && electron-builder",
-    "publish": "electron-builder --x64 --publish --win -p always"
+    "publish": "electron-builder --win --x64 --publish always"
   },
   "build": {
     "appId": "com.electron.troubadour-server",
