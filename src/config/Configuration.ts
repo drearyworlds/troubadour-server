@@ -11,6 +11,8 @@ class Configuration {
         if (fs.existsSync("config.json")) {
             let config = JSON.parse(fs.readFileSync("config.json").toString());
             this.databaseConnectionString = config.databaseConnectionString;
+        } else {
+            console.log("Cannot find config.json!")
         }
     }
 
