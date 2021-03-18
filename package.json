@@ -1,6 +1,6 @@
 {
   "name": "troubadour-server",
-  "description": "Client for Troubadour Song List Application",
+  "description": "Troubadour Song List Server Application",
   "version": "0.0.1",
   "author": "drearyworlds",
   "main": "dist/main.js",
@@ -13,10 +13,12 @@
     "copyHtml": "copy .\\src\\index.html .\\dist\\",
     "start": "npm run build && node dist/app.js",
     "pack": "electron-builder --dir",
-    "dist": "npm run build-electron && electron-builder"
+    "dist": "npm run build-electron && electron-builder",
+    "publish": "electron-builder --x64 --publish --win -p always"
   },
   "build": {
     "appId": "com.electron.troubadour-server",
+    "productName": "Troubadour Server",
     "files": [
       "!bin",
       "!src",
@@ -31,13 +33,33 @@
       "buildResources": "res",
       "output": "bin"
     },
-    "asar": false,
+    "asar": true,
     "extraFiles": [
       {
         "from": "config.json",
         "to": "."
       }
-    ]
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "drearyworlds",
+        "repo": "troubadour-server"
+      }
+    ],
+    "win": {
+      "publish": [
+        "github"
+      ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
   },
   "repository": {
     "type": "git",
