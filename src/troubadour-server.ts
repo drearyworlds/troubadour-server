@@ -4,7 +4,6 @@ import { SongRouter } from "./routes/song-router";
 import { DrinkRouter } from "./routes/drink-router";
 import DatabaseManager from "./database/database-manager";
 import { Constants } from "./config/Constants";
-import "./sanchezbot/sanchezbot"
 import { SanchezBot } from "./sanchezbot/sanchezbot";
 
 export class TroubadourServer {

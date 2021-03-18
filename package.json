@@ -5,10 +5,12 @@
   "author": "drearyworlds",
   "main": "dist/main.js",
   "scripts": {
-    "copyHtml": "copy .\\src\\index.html .\\dist\\",
+    "clean": "rd /s /q .\\dist && rd /s /q .\\bin",
     "build": "tsc",
     "build-electron": "npm run build && npm run copyHtml",
+    "rebuild": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "copyHtml": "copy .\\src\\index.html .\\dist\\",
     "start": "npm run build && node dist/app.js",
     "pack": "electron-builder --dir",
     "dist": "npm run build-electron && electron-builder"
@@ -39,13 +41,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drearyworlds/songlistserver.git"
+    "url": "git+https://github.com/drearyworlds/troubadour-server.git"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/drearyworlds/songlistserver/issues"
+    "url": "https://github.com/drearyworlds/troubadour-server/issues"
   },
-  "homepage": "https://github.com/drearyworlds/songlistserver#readme",
+  "homepage": "https://github.com/drearyworlds/troubadour-server#readme",
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/express": "^4.16.1",
