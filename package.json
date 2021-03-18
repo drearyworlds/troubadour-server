@@ -1,7 +1,8 @@
 {
   "name": "troubadour-server",
-  "version": "1.0.0",
-  "description": "",
+  "description": "Client for Troubadour Song List Application",
+  "version": "0.0.1",
+  "author": "drearyworlds",
   "main": "dist/main.js",
   "scripts": {
     "copyHtml": "copy .\\src\\index.html .\\dist\\",
@@ -25,6 +26,7 @@
       "!tsconfig.json"
     ],
     "directories": {
+      "buildResources": "res",
       "output": "bin"
     },
     "asar": false,
@@ -39,7 +41,6 @@
     "type": "git",
     "url": "git+https://github.com/drearyworlds/songlistserver.git"
   },
-  "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/drearyworlds/songlistserver/issues"
