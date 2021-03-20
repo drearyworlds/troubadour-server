@@ -1,7 +1,7 @@
 {
   "name": "troubadour-server",
   "description": "Troubadour Song List Server Application",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "drearyworlds",
   "main": "dist/main.js",
   "scripts": {
