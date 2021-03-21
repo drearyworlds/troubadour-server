@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import * as path from 'path'
 import * as url from 'url'
+import Configuration from './config/Configuration'
 import { TroubadourServer } from './troubadour-server'
 
 let win: BrowserWindow
@@ -29,6 +30,8 @@ function createWindow() {
     win = null
   })
 }
+
+Configuration.initialize(app.getPath(`userData`))
 
 // Start the Troubadour server
 let server : TroubadourServer = new TroubadourServer()

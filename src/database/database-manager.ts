@@ -17,7 +17,11 @@ class DatabaseManager {
     }
 
     public async connectToDatabase() {
-        await mongoose.connect(Configuration.getDatabaseConnectionString(), {
+        console.log("connectToDatabase")
+        const dbConnectionString = Configuration.getDatabaseConnectionString();
+        console.log(dbConnectionString)
+
+        await mongoose.connect(dbConnectionString, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false,

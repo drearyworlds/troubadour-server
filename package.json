@@ -12,6 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "copyHtml": "copy .\\src\\index.html .\\dist\\",
     "start": "npm run build && node dist/app.js",
+    "start-electron": "npm run build-electron && electron .",
     "pack": "electron-builder --dir",
     "dist": "npm run build-electron && electron-builder",
     "publish": "electron-builder --win --x64 --publish always"
