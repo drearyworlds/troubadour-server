@@ -31,6 +31,7 @@ function createWindow() {
   })
 }
 
+console.log(`Userdata path: ${app.getPath(`userData`)}`)
 Configuration.initialize(app.getPath(`userData`))
 
 // Start the Troubadour server
