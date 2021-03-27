@@ -5,6 +5,7 @@ import { DrinkRouter } from "./routes/drink-router";
 import DatabaseManager from "./database/database-manager";
 import { Constants } from "./config/Constants";
 import { SanchezBot } from "./sanchezbot/sanchezbot";
+import Configuration from "./config/Configuration"
 
 export class TroubadourServer {
     expressApp = express();

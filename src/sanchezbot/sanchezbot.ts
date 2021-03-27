@@ -1,6 +1,6 @@
-import dotenv from "dotenv"
 import tmi from "tmi.js"
 import { Constants } from "./constants"
+import Configuration from "../config/Configuration"
 
 export class SanchezBot {
     // The client that connects to Twitch
@@ -105,18 +105,22 @@ export class SanchezBot {
         SanchezBot.calculateStreamType();
         SanchezBot.initializeMessages();
 
-        dotenv.config()
-
         // Define configuration options
         const opts = {
             identity: {
-                username: process.env.TWITCH_BOT_USERNAME,
-                password: process.env.TWITCH_BOT_TOKEN
+                username: Configuration.getTwitchBotUsername(),
+                password: Configuration.getTwitchBotToken()
             },
             channels: [
-                process.env.TWITCH_CHANNEL_NAME
+                Configuration.getTwitchChannelName()
             ]
         };
+
+        console.log("****************************************")
+        console.log(Configuration.getTwitchBotUsername())
+        console.log(Configuration.getTwitchBotToken())
+        console.log(Configuration.getTwitchChannelName())
+        console.log("****************************************")
 
         // Create a client with our options
         SanchezBot.client = new tmi.client(opts);
@@ -138,12 +142,12 @@ export class SanchezBot {
         console.log(`Connected to ${addr}: ${port} `);
     }
 
-    static executePredefinedCommand(target: string, commandName: string) {
+    static executePredefinedCommand(commandName: string) {
         console.log(`executePredefinedCommand ${commandName}`)
 
         try {
             let commandText: string = `${SanchezBot.predefinedCommands.get(commandName)} I am Sanchez.`
-            SanchezBot.client.say(target, commandText)
+            SanchezBot.client.say(Configuration.getTwitchChannelName(), commandText)
             return true;
         } catch (e) {
             console.error(`Caught an exception running predefined command ${commandName}: ${e} `)
@@ -152,15 +156,15 @@ export class SanchezBot {
         return false;
     }
 
-    static executeCalculatedCommand(target: string, commandName: string) {
+    static executeCalculatedCommand(commandName: string) {
         console.log("executeCalculatedCommand")
 
         try {
             if (commandName == "!dice") {
-                SanchezBot.client.say(target, `${SanchezBot.getDiceCommand()} I am Sanchez.`);
+                SanchezBot.client.say(Configuration.getTwitchChannelName(), `${SanchezBot.getDiceCommand()} I am Sanchez.`);
                 return true;
             } else if (commandName == "!sanchez") {
-                SanchezBot.client.say(target, `${SanchezBot.getSanchezCommand()}`);
+                SanchezBot.client.say(Configuration.getTwitchChannelName(), `${SanchezBot.getSanchezCommand()}`);
             }
         } catch (e) {
             console.error(`Caught an exeption running calculated command ${commandName} : ${e} `)
@@ -175,9 +179,9 @@ export class SanchezBot {
         let executed: boolean = false;
 
         if (SanchezBot.predefinedCommands.has(commandName)) {
-            executed = SanchezBot.executePredefinedCommand(target, commandName)
+            executed = SanchezBot.executePredefinedCommand(commandName)
         } else {
-            executed = SanchezBot.executeCalculatedCommand(target, commandName)
+            executed = SanchezBot.executeCalculatedCommand(commandName)
         }
 
         return executed;
@@ -232,11 +236,11 @@ export class SanchezBot {
         console.log("setUpCommonIntervalCommands")
 
         setInterval(() => {
-            SanchezBot.executeCalculatedCommand(process.env.TWITCH_CHANNEL_NAME, "!sanchez")
+            SanchezBot.executeCalculatedCommand("!sanchez")
         }, Constants.ONE_HOUR_IN_MS)
 
         setInterval(() => {
-            SanchezBot.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!discord")
+            SanchezBot.executePredefinedCommand("!discord")
         }, Constants.THIRTY_ONE_MINUTES_IN_MS)
     }
 
@@ -244,7 +248,7 @@ export class SanchezBot {
         console.log("setUpGameStreamIntervalCommands")
 
         setInterval(() => {
-            SanchezBot.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!minecraft")
+            SanchezBot.executePredefinedCommand("!minecraft")
         }, Constants.TWENTY_NINE_MINUTES_IN_MS)
     }
 
@@ -252,7 +256,7 @@ export class SanchezBot {
         console.log("setUpMusicStreamIntervalCommands")
 
         setInterval(() => {
-            SanchezBot.executePredefinedCommand(process.env.TWITCH_CHANNEL_NAME, "!songrequest")
+            SanchezBot.executePredefinedCommand("!songrequest")
         }, Constants.TWENTY_NINE_MINUTES_IN_MS)
     }
 }
