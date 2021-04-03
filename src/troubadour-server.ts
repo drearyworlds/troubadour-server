@@ -3,7 +3,8 @@ import bodyParser from "body-parser";
 import { SongRouter } from "./routes/song-router";
 import { DrinkRouter } from "./routes/drink-router";
 import DatabaseManager from "./database/database-manager";
-import { Constants } from "./config/Constants";
+import LogService from "./logging/log-service"
+import { Constants } from "./constants";
 
 export class TroubadourServer {
     expressApp = express();
@@ -37,7 +38,7 @@ export class TroubadourServer {
         this.expressApp.use("/", drinkRouter.router);
 
         this.expressApp.listen(this.port, () => {
-            return console.log(`Troubadour server is listening on ${this.port}`);
+            return LogService.log(`Troubadour server is listening on ${this.port}`);
         });
     }
 }

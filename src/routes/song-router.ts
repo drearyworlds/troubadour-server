@@ -1,10 +1,11 @@
 import express from "express";
 import { SongRepository } from "../database/song-repository";
-import { Constants } from "../config/Constants";
-import Configuration from "../config/Configuration";
+import { Constants } from "../constants";
+import Configuration from "../config/configuration-service";
 import { Song } from "../models/song";
 import fetch from "node-fetch"
 import https from "https"
+import LogService from "../logging/log-service"
 
 export class SongRouter {
     public router = express.Router();
@@ -17,7 +18,7 @@ export class SongRouter {
     public createRoutes() {
         this.router.route("/song/list")
             .get(async function (req, res) {
-                console.log("[SongRouter] [GET] /song/list");
+                LogService.log("[SongRouter] [GET] /song/list");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
@@ -30,13 +31,13 @@ export class SongRouter {
                     songs: songsArray
                 };
 
-                console.log(`Retrieved songList from db [${songList.songs.length} entries]`)
+                LogService.log(`Retrieved songList from db [${songList.songs.length} entries]`)
 
                 const songListJson = JSON.stringify(songList);
                 res.send(songListJson);
             })
             .post(async function (req, res) {
-                console.log("[SongRouter] [POST] /song/list");
+                LogService.log("[SongRouter] [POST] /song/list");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -49,23 +50,23 @@ export class SongRouter {
                 };
 
                 try {
-                    console.log(`body: ${req.body}` || "body: null");
+                    LogService.log(`body: ${req.body}` || "body: null");
                     const jsonSongList: string = JSON.stringify(req.body);
 
-                    console.log(`jsonSongList: ${jsonSongList}`)
+                    LogService.log(`jsonSongList: ${jsonSongList}`)
 
                     response.success = await SongRepository.importSongListFromJson(jsonSongList);
 
                     res.send(JSON.stringify(response));
                 } catch {
-                    console.log(`Error occurred updating current song to:\n${currentSongText}`);
+                    LogService.log(`Error occurred updating current song to:\n${currentSongText}`);
                     res.send(JSON.stringify(response));
                 }
             });
 
         this.router.route("/song/data")
             .get(async function (req, res) {
-                console.log("[SongRouter]:/song/data");
+                LogService.log("[SongRouter]:/song/data");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
@@ -74,7 +75,7 @@ export class SongRouter {
                 res.send(songDataJson);
             })
             .post(async function (req, res) {
-                console.log("[SongRouter] [POST] /song/data");
+                LogService.log("[SongRouter] [POST] /song/data");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -87,14 +88,14 @@ export class SongRouter {
                 };
 
                 try {
-                    console.log(req.body || "body: null");
+                    LogService.log(req.body || "body: null");
                     const song = req.body;
 
                     response.success = await SongRepository.updateOrInsertSong(song)
 
                     res.send(JSON.stringify(response));
                 } catch {
-                    console.log(`Error occurred updating current song to:\n${currentSongText}`);
+                    LogService.log(`Error occurred updating current song to:\n${currentSongText}`);
                     res.send(JSON.stringify(response));
                 }
             })
@@ -102,7 +103,7 @@ export class SongRouter {
         this.router
             .route("/song/current")
             .get(function (req, res) {
-                console.log("[SongRouter] [GET] /song/current");
+                LogService.log("[SongRouter] [GET] /song/current");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -140,7 +141,7 @@ export class SongRouter {
                 }
             })
             .post(function (req, res) {
-                console.log("[SongRouter] [POST] /song/current");
+                LogService.log("[SongRouter] [POST] /song/current");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -153,32 +154,32 @@ export class SongRouter {
                 };
 
                 try {
-                    console.log(req.body || "body: null");
+                    LogService.log(req.body || "body: null");
                     const song = req.body;
                     SongRouter.currentSong = song;
                     res.send(JSON.stringify(response));
                 } catch {
-                    console.log(`Error occurred updating current song to:\n${currentSongText}`);
+                    LogService.log(`Error occurred updating current song to:\n${currentSongText}`);
                     res.send(JSON.stringify(response));
                 }
             })
             .delete(function (req, res) {
-                console.log("[SongRouter] [DELETE] /song/current");
+                LogService.log("[SongRouter] [DELETE] /song/current");
             });
 
         this.router
             .route("/ss/list")
             .get(async function (req, res) {
-                console.log("[SongRouter] [GET] /ss/list");
+                LogService.log("[SongRouter] [GET] /ss/list");
 
                 const streamerId = Configuration.getStreamerId()
-                console.log(`streamerId: ${streamerId}`);
+                LogService.log(`streamerId: ${streamerId}`);
 
                 let urlString = Constants.URL_SS_GET_LIST;
                 urlString = urlString.replace(/{streamerId}/g, streamerId);
 
                 const url: URL = new URL(urlString);
-                console.log(`url: ${url.toString()}`);
+                LogService.log(`url: ${url.toString()}`);
 
                 let params: URLSearchParams = new URLSearchParams()
                 params.append('size', "0")
@@ -188,17 +189,17 @@ export class SongRouter {
                 params.append('order', "asc")
 
                 url.search = new URLSearchParams(params).toString();
-                console.log(`url.search: ${url.search}`);
+                LogService.log(`url.search: ${url.search}`);
 
                 const response = await fetch(url, {
                     method: 'GET'
                 });
 
-                console.log(`response.ok: ${response.ok}`);
+                LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                console.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
             })
@@ -206,26 +207,26 @@ export class SongRouter {
         this.router
             .route("/ss/queue")
             .get(async function (req, res) {
-                console.log("[SongRouter] [GET] /ss/queue");
+                LogService.log("[SongRouter] [GET] /ss/queue");
 
                 const streamerId = Configuration.getStreamerId()
-                console.log(`streamerId: ${streamerId}`);
+                LogService.log(`streamerId: ${streamerId}`);
 
                 let urlString = Constants.URL_SS_GET_QUEUE;
                 urlString = urlString.replace(/{streamerId}/g, streamerId);
 
                 const url: URL = new URL(urlString);
-                console.log(`url: ${url.toString()}`);
+                LogService.log(`url: ${url.toString()}`);
 
                 const response = await fetch(url, {
                     method: 'GET'
                 });
 
-                console.log(`response.ok: ${response.ok}`);
+                LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                console.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
             })
@@ -233,23 +234,23 @@ export class SongRouter {
         this.router
             .route("/ss/queue/add")
             .post(async function (req, res) {
-                console.log("[SongRouter] [GET] /ss/queue/add");
+                LogService.log("[SongRouter] [GET] /ss/queue/add");
 
                 const streamerId = Configuration.getStreamerId()
-                console.log(`streamerId: ${streamerId}`);
+                LogService.log(`streamerId: ${streamerId}`);
 
                 const body = req.body;
-                console.log(`body: ${JSON.stringify(body)}`);
+                LogService.log(`body: ${JSON.stringify(body)}`);
 
                 let songId = body.songId;
-                console.log(`songId: ${songId}`);
+                LogService.log(`songId: ${songId}`);
 
                 let urlString = Constants.URL_SS_QUEUE_ADD;
                 urlString = urlString.replace(/{streamerId}/g, streamerId);
                 urlString = urlString.replace(/{songId}/g, songId.toString());
 
                 const url: URL = new URL(urlString);
-                console.log(`url: ${url.toString()}`);
+                LogService.log(`url: ${url.toString()}`);
 
                 const token = Configuration.getStreamerSonglistToken()
 
@@ -262,11 +263,11 @@ export class SongRouter {
                     }
                 });
                 
-                console.log(`response.ok: ${response.ok}`);
+                LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                console.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
             })
@@ -274,23 +275,23 @@ export class SongRouter {
             this.router
             .route("/ss/queue/mark")
             .post(async function (req, res) {
-                console.log("[SongRouter] [GET] /ss/queue/mark");
+                LogService.log("[SongRouter] [GET] /ss/queue/mark");
 
                 const streamerId = Configuration.getStreamerId()
-                console.log(`streamerId: ${streamerId}`);
+                LogService.log(`streamerId: ${streamerId}`);
 
                 const body = req.body;
-                console.log(`body: ${JSON.stringify(body)}`);
+                LogService.log(`body: ${JSON.stringify(body)}`);
 
                 let queueId = body.queueId;
-                console.log(`queueId: ${queueId}`);
+                LogService.log(`queueId: ${queueId}`);
 
                 let urlString = Constants.URL_SS_QUEUE_MARK;
                 urlString = urlString.replace(/{streamerId}/g, streamerId);
                 urlString = urlString.replace(/{queueId}/g, queueId.toString());
 
                 const url: URL = new URL(urlString);
-                console.log(`url: ${url.toString()}`);
+                LogService.log(`url: ${url.toString()}`);
 
                 const token = Configuration.getStreamerSonglistToken()
 
@@ -303,11 +304,11 @@ export class SongRouter {
                     }
                 });
                 
-                console.log(`response.ok: ${response.ok}`);
+                LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                console.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
 
@@ -317,23 +318,23 @@ export class SongRouter {
         this.router
             .route("/ss/queue/remove")
             .post(async function (req, res) {
-                console.log("[SongRouter] [GET] /ss/queue/remove");
+                LogService.log("[SongRouter] [GET] /ss/queue/remove");
 
                 const streamerId = Configuration.getStreamerId()
-                console.log(`streamerId: ${streamerId}`);
+                LogService.log(`streamerId: ${streamerId}`);
 
                 const body = req.body;
-                console.log(`body: ${JSON.stringify(body)}`);
+                LogService.log(`body: ${JSON.stringify(body)}`);
 
                 let queueId = body.queueId;
-                console.log(`queueId: ${queueId}`);
+                LogService.log(`queueId: ${queueId}`);
 
                 let urlString = Constants.URL_SS_QUEUE_REMOVE;
                 urlString = urlString.replace(/{streamerId}/g, streamerId);
                 urlString = urlString.replace(/{queueId}/g, queueId.toString());
 
                 const url: URL = new URL(urlString);
-                console.log(`url: ${url.toString()}`);
+                LogService.log(`url: ${url.toString()}`);
 
                 const token = Configuration.getStreamerSonglistToken()
 
@@ -346,11 +347,11 @@ export class SongRouter {
                     }
                 });
                 
-                console.log(`response.ok: ${response.ok}`);
+                LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                console.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
             })

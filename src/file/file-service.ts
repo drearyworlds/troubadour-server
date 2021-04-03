@@ -1,12 +1,13 @@
 import fs from "fs";
+import LogService from "../logging/log-service"
 
-export class FileManager {
+export class FileService {
     // Deprecated
     public static getSongList(songListJsonPath: string, encoding: "utf8") {
-        console.log("[FileManager.getSongList] [Start]");
-        console.log(`[FileManager.getSongList] songListJsonPath: ${songListJsonPath}`);
-        console.log(`[FileManager.getSongList] encoding: ${encoding}`);
-        console.log("[FileManager.getSongList] [End]");
+        LogService.log("[FileService.getSongList] [Start]");
+        LogService.log(`[FileService.getSongList] songListJsonPath: ${songListJsonPath}`);
+        LogService.log(`[FileService.getSongList] encoding: ${encoding}`);
+        LogService.log("[FileService.getSongList] [End]");
         return fs.readFileSync(songListJsonPath, encoding);
     }
 
@@ -17,7 +18,7 @@ export class FileManager {
         songArtist: string,
         songTitle: string
     ) {
-        console.log("[SongRepository.getSongData] [Start]");
+        LogService.log("[SongRepository.getSongData] [Start]");
         const songListJson = fs.readFileSync(songListJsonPath, encoding);
         const songList = JSON.parse(songListJson);
         const songData = songList["songs"].find(
@@ -26,7 +27,7 @@ export class FileManager {
 
         const songDataJson = JSON.stringify(songData);
 
-        console.log("[SongRepository.getSongData] [End]");
+        LogService.log("[SongRepository.getSongData] [End]");
         return songDataJson;
     }
 
@@ -38,15 +39,15 @@ export class FileManager {
         artist: string,
         title: string
     ) {
-        console.log("[SongRepository.getSongLyrics] [Start]");
+        LogService.log("[SongRepository.getSongLyrics] [Start]");
         let sanitizedArtist: string = artist.replace(/:|;|"/g, "_");
         let sanitizedTitle: string = title.toString().replace(/:|;|"/g, "_");
 
-        console.log(sanitizedArtist || "sanitizedArtist: null");
-        console.log(sanitizedTitle || "sanitizedTitle: null");
+        LogService.log(sanitizedArtist || "sanitizedArtist: null");
+        LogService.log(sanitizedTitle || "sanitizedTitle: null");
 
         const songLyricsFileName = `${songLyricsPath}${sanitizedArtist} - ${sanitizedTitle}${lyricsExtension}`;
-        console.log(songLyricsFileName || "songLyricsFileName: null");
+        LogService.log(songLyricsFileName || "songLyricsFileName: null");
 
         if (songLyricsFileName == null || !fs.existsSync(songLyricsFileName)) {
             return null;
@@ -54,7 +55,7 @@ export class FileManager {
 
         const songLyrics = fs.readFileSync(songLyricsFileName, encoding);
 
-        console.log("[SongRepository.getSongLyrics] [End]");
+        LogService.log("[SongRepository.getSongLyrics] [End]");
         return songLyrics;
     }
 
@@ -65,9 +66,9 @@ export class FileManager {
     public static setCurrentSong(currentSongPath: string, encoding: "utf8", song: object) {
         const currentSongText = `${song["artist"]}\n"${song["title"]}"\n${song["album"]} (${song["year"]})`;
 
-        console.log(`Updating current song at: ${currentSongPath}`);
+        LogService.log(`Updating current song at: ${currentSongPath}`);
         fs.writeFileSync(currentSongPath, currentSongText, encoding);
-        console.log(`Current song updated to:\n${currentSongText}`);
+        LogService.log(`Current song updated to:\n${currentSongText}`);
 
         return true;
     }

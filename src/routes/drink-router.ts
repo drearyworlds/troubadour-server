@@ -1,7 +1,8 @@
 import express from "express";
 import { DrinkRepository } from "../database/drink-repository";
-import { Constants } from "../config/Constants";
+import { Constants } from "../constants";
 import { Drink } from "../models/drink";
+import LogService from "../logging/log-service"
 
 export class DrinkRouter {
     public router = express.Router();
@@ -14,7 +15,7 @@ export class DrinkRouter {
     public createRoutes() {
         this.router.route("/drink/list")
             .get(async function (req, res) {
-                console.log("[DrinkRouter] [GET] /drink/list");
+                LogService.log("[DrinkRouter] [GET] /drink/list");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
@@ -27,13 +28,13 @@ export class DrinkRouter {
                     drinks: drinksArray
                 };
 
-                console.log(`Retrieved drinkList from db [${drinkList.drinks.length} entries]`)
+                LogService.log(`Retrieved drinkList from db [${drinkList.drinks.length} entries]`)
 
                 const drinkListJson = JSON.stringify(drinkList);
                 res.send(drinkListJson);
             })
             .post(async function (req, res) {
-                console.log("[DrinkRouter] [POST] /drink/list");
+                LogService.log("[DrinkRouter] [POST] /drink/list");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -46,23 +47,23 @@ export class DrinkRouter {
                 };
 
                 try {
-                    console.log(`body: ${req.body}` || "body: null");
+                    LogService.log(`body: ${req.body}` || "body: null");
                     const jsonDrinkList: string = JSON.stringify(req.body);
 
-                    console.log(`jsonDrinkList: ${jsonDrinkList}`)
+                    LogService.log(`jsonDrinkList: ${jsonDrinkList}`)
 
                     response.success = await DrinkRepository.importDrinkListFromJson(jsonDrinkList);
 
                     res.send(JSON.stringify(response));
                 } catch {
-                    console.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
+                    LogService.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
                     res.send(JSON.stringify(response));
                 }
             });
 
         this.router.route("/drink/data")
             .get(async function (req, res) {
-                console.log("[DrinkRouter]:/drink/data");
+                LogService.log("[DrinkRouter]:/drink/data");
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
@@ -71,7 +72,7 @@ export class DrinkRouter {
                 res.send(drinkDataJson);
             })
             .post(async function (req, res) {
-                console.log("[DrinkRouter] [POST] /drink/data");
+                LogService.log("[DrinkRouter] [POST] /drink/data");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -84,14 +85,14 @@ export class DrinkRouter {
                 };
 
                 try {
-                    console.log(req.body || "body: null");
+                    LogService.log(req.body || "body: null");
                     const drink = req.body;
         
                     response.success = await DrinkRepository.updateOrInsertDrink(drink)
 
                     res.send(JSON.stringify(response));
                 } catch {
-                    console.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
+                    LogService.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
                     res.send(JSON.stringify(response));
                 }
             })
@@ -99,7 +100,7 @@ export class DrinkRouter {
         this.router
             .route("/drink/current")
             .get(function (req, res) {
-                console.log("[DrinkRouter] [GET] /drink/current");
+                LogService.log("[DrinkRouter] [GET] /drink/current");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -132,7 +133,7 @@ export class DrinkRouter {
                 }
             })
             .post(function (req, res) {
-                console.log("[DrinkRouter] [POST] /drink/current");
+                LogService.log("[DrinkRouter] [POST] /drink/current");
 
                 res.setHeader(
                     Constants.HTTP_HEADER_CONTENT_TYPE,
@@ -145,17 +146,17 @@ export class DrinkRouter {
                 };
 
                 try {
-                    console.log(req.body || "body: null");
+                    LogService.log(req.body || "body: null");
                     const drink = req.body;
                     DrinkRouter.currentDrink = drink;
                     res.send(JSON.stringify(response));
                 } catch {
-                    console.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
+                    LogService.log(`Error occurred updating current drink to:\n${currentDrinkText}`);
                     res.send(JSON.stringify(response));
                 }
             })
             .delete(function (req, res) {
-                console.log("[DrinkRouter] [DELETE] /drink/current");
+                LogService.log("[DrinkRouter] [DELETE] /drink/current");
             });
     }
 }

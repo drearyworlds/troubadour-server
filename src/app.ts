@@ -1,5 +1,5 @@
 import { TroubadourServer } from './troubadour-server'
-import Configuration from './config/Configuration'
+import Configuration from './config/configuration-service'
 
 Configuration.initialize(`.`)
 

@@ -9,8 +9,17 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
+<script>
+    require('electron').ipcRenderer.on('log', (event, message) => {
+        document.getElementById("log").insertAdjacentHTML('afterend', `${message}<br>`);
+    })
+</script>
+
 <body>
     Is this Troubadour Server?
+    <div id="log">
+        log:
+    </div>
 </body>
 
 </html>

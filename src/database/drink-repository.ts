@@ -1,33 +1,34 @@
 import mongoose from "mongoose";
 import { Drink, DrinkSchema } from "../models/drink";
+import LogService from "../logging/log-service"
 
 export class DrinkRepository {
     private static DrinkModel = mongoose.model("Drink", DrinkSchema);
 
     public static async deleteAllDrinks() {
-        console.log("DrinkRepository::deleteAllDrinks");
+        LogService.log("DrinkRepository::deleteAllDrinks");
         await DrinkRepository.DrinkModel.remove({}, function (err) {
-            console.log("Drink collection removed");
+            LogService.log("Drink collection removed");
         });
     }
 
     public static async importDrinkListFromJson(drinkListJson: string) {
         let success: boolean = true
-        console.log("DrinkRepository::importDrinkListFromJson");
+        LogService.log("DrinkRepository::importDrinkListFromJson");
 
-        console.log(drinkListJson)
+        LogService.log(drinkListJson)
         try {
             const drinks: Drink[] = JSON.parse(drinkListJson)["drinks"];
             for (const drink of drinks) {
                 await this.updateOrInsertDrink(drink)
             }
         } catch (e) {
-            console.log(`Exception occurred importing drinks: ${e}`)
+            LogService.log(`Exception occurred importing drinks: ${e}`)
             success = false;
         }
 
         if (success) {
-            console.log("Drink list imported: " + success)
+            LogService.log("Drink list imported: " + success)
         }
 
         return success;
@@ -39,11 +40,11 @@ export class DrinkRepository {
 
         success = await DrinkRepository.updateDrink(drinkToUpdateOrInsert)
         if (success) {
-            console.log(`Successfully updated drink in Drink collection`);
+            LogService.log(`Successfully updated drink in Drink collection`);
         } else {
             success = await DrinkRepository.insertDrink(drinkToUpdateOrInsert);
             if (success) {
-                console.log(`Successfully added drink to Drink collection`);
+                LogService.log(`Successfully added drink to Drink collection`);
             }
         }
 
@@ -54,7 +55,7 @@ export class DrinkRepository {
         let success: boolean = false;
         const drinkModel = new DrinkRepository.DrinkModel(drinkToAdd);
         await drinkModel.save().then((v) => {
-            console.log(`Added drink to Drink collection: ${v}`);
+            LogService.log(`Added drink to Drink collection: ${v}`);
             success = true;
         });
 
@@ -68,7 +69,7 @@ export class DrinkRepository {
 
         if (result) {
             success = true;
-            console.log(`Drink updated: ${drinkToUpdate.brewery} - ${drinkToUpdate.name}`)
+            LogService.log(`Drink updated: ${drinkToUpdate.brewery} - ${drinkToUpdate.name}`)
         }
 
         return success;
@@ -81,7 +82,7 @@ export class DrinkRepository {
     }
 
     public static async getDrinkData(drinkId: number) {
-        console.log(`Getting drink data for drinkId: ${drinkId}`)
+        LogService.log(`Getting drink data for drinkId: ${drinkId}`)
         var query = DrinkRepository.DrinkModel.find({ id: drinkId });
         const returnValue = await query.exec()
         return returnValue[0];

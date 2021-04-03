@@ -1,33 +1,34 @@
 import mongoose from "mongoose";
 import { Song, SongSchema } from "../models/song";
+import LogService from "../logging/log-service"
 
 export class SongRepository {
     private static SongModel = mongoose.model("Song", SongSchema);
 
     public static async deleteAllSongs() {
-        console.log("SongRepository::deleteAllSongs");
+        LogService.log("SongRepository::deleteAllSongs");
         await SongRepository.SongModel.remove({}, function (err) {
-            console.log("Song collection removed");
+            LogService.log("Song collection removed");
         });
     }
 
     public static async importSongListFromJson(songListJson: string) {
         let success: boolean = true
-        console.log("SongRepository::importSongListFromJson");
+        LogService.log("SongRepository::importSongListFromJson");
 
-        console.log(songListJson)
+        LogService.log(songListJson)
         try {
             const songs: Song[] = JSON.parse(songListJson)["songs"];
             for (const song of songs) {
                 await this.updateOrInsertSong(song)
             }
         } catch {
-            console.log("Exception occurred importing songs")
+            LogService.log("Exception occurred importing songs")
             success = false;
         }
 
         if (success) {
-            console.log("Song list imported: " + success)
+            LogService.log("Song list imported: " + success)
         }
 
         return success;
@@ -39,11 +40,11 @@ export class SongRepository {
 
         success = await SongRepository.updateSong(songToUpdateOrInsert)
         if (success) {
-            console.log(`Successfully updated song in Song collection`);
+            LogService.log(`Successfully updated song in Song collection`);
         } else {
             success = await SongRepository.insertSong(songToUpdateOrInsert);
             if (success) {
-                console.log(`Successfully added song to Song collection`);
+                LogService.log(`Successfully added song to Song collection`);
             }
         }
 
@@ -54,7 +55,7 @@ export class SongRepository {
         let success: boolean = false;
         const songModel = new SongRepository.SongModel(songToAdd);
         await songModel.save().then((v) => {
-            console.log(`Added song to Song collection: ${v}`);
+            LogService.log(`Added song to Song collection: ${v}`);
             success = true;
         });
 
@@ -68,7 +69,7 @@ export class SongRepository {
 
         if (result) {
             success = true;
-            console.log(`Song updated: ${songToUpdate.artist} - ${songToUpdate.title}`)
+            LogService.log(`Song updated: ${songToUpdate.artist} - ${songToUpdate.title}`)
         }
 
         return success;
@@ -81,7 +82,7 @@ export class SongRepository {
     }
 
     public static async getSongData(songId: number) {
-        console.log(`Getting song data for songId: ${songId}`)
+        LogService.log(`Getting song data for songId: ${songId}`)
         var query = SongRepository.SongModel.find({ id: songId });
         const returnValue = await query.exec()
         return returnValue[0];
