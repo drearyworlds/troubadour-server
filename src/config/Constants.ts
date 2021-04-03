@@ -1,5 +1,3 @@
-import Configuration from "./Configuration";
-
 export class Constants {
     static HTTP_HEADER_CONTENT_TYPE = "Content-Type";
     static HTTP_HEADER_CONTENT_TYPE_JSON = "application/json";

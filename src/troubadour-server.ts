@@ -4,18 +4,12 @@ import { SongRouter } from "./routes/song-router";
 import { DrinkRouter } from "./routes/drink-router";
 import DatabaseManager from "./database/database-manager";
 import { Constants } from "./config/Constants";
-import { SanchezBot } from "./sanchezbot/sanchezbot";
-import Configuration from "./config/Configuration"
 
 export class TroubadourServer {
     expressApp = express();
     port: number = 3000;
 
     Run() {
-        // Initialize bot
-        let sanchezBot: SanchezBot = new SanchezBot()
-        sanchezBot.initialize()
-
         DatabaseManager.connectToDatabase()
 
         this.expressApp.use(bodyParser.urlencoded({ extended: false }));
