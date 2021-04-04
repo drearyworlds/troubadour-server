@@ -7,9 +7,6 @@ class Configuration {
     private databaseConnectionString?: string;
     private streamerId?: string;
     private streamerSonglistToken?: string;
-    private twitchBotUsername?: string;
-    private twitchBotToken?: string;
-    private twitchChannelName?: string;
 
     constructor() {
         LogService.log('Created new instance of Configuration');
@@ -29,27 +26,17 @@ class Configuration {
                 this.databaseConnectionString = config.databaseConnectionString;
                 this.streamerId = config.streamerId;
                 this.streamerSonglistToken = config.streamerSonglistToken;
-                this.twitchBotUsername = config.twitchBotUsername;
-                this.twitchBotToken = config.twitchBotToken;
-                this.twitchChannelName = config.twitchChannelName;
             } else if (fs.existsSync(configFileCurrentDirectory)) {
                 LogService.log(`Found config.json at: ${configFileCurrentDirectory}`)
                 let config = JSON.parse(fs.readFileSync(configFileCurrentDirectory).toString());
                 this.databaseConnectionString = config.databaseConnectionString;
                 this.streamerId = config.streamerId;
                 this.streamerSonglistToken = config.streamerSonglistToken;
-                this.twitchBotUsername = config.twitchBotUsername;
-                this.twitchBotToken = config.twitchBotToken;
-                this.twitchChannelName = config.twitchChannelName;
             } else {
                 LogService.log(`configFileFullPath: ${configFileFullPath}`)
                 LogService.log(`configFileCurrentDirectory: ${configFileCurrentDirectory}`)
                 LogService.log("Cannot find config.json!")
             }
-
-            LogService.log(`twitchBotUsername: ${this.twitchBotUsername}`)
-            LogService.log(`twitchBotToken: ${this.twitchBotToken}`)
-            LogService.log(`twitchChannelName: ${this.twitchChannelName}`)
         } catch {
             console.error("Exception initalizing configuration!")
         }
@@ -72,18 +59,6 @@ class Configuration {
 
     public getStreamerSonglistToken() {
         return this.streamerSonglistToken;
-    }
-
-    public getTwitchBotUsername() {
-        return this.twitchBotUsername;
-    }
-
-    public getTwitchBotToken() {
-        return this.twitchBotToken;
-    }
-
-    public getTwitchChannelName() {
-        return this.twitchChannelName;
     }
 }
 
