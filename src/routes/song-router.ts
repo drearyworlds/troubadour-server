@@ -4,7 +4,6 @@ import { Constants } from "../constants";
 import Configuration from "../config/configuration-service";
 import { Song } from "../models/song";
 import fetch from "node-fetch"
-import https from "https"
 import LogService from "../logging/log-service"
 
 export class SongRouter {
@@ -44,7 +43,6 @@ export class SongRouter {
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
                 );
 
-                let currentSongText = ``;
                 let response = {
                     success: false
                 };
@@ -53,13 +51,13 @@ export class SongRouter {
                     LogService.log(`body: ${req.body}` || "body: null");
                     const jsonSongList: string = JSON.stringify(req.body);
 
-                    LogService.log(`jsonSongList: ${jsonSongList}`)
+                    //LogService.log(`jsonSongList: ${jsonSongList}`)
 
                     response.success = await SongRepository.importSongListFromJson(jsonSongList);
 
                     res.send(JSON.stringify(response));
                 } catch {
-                    LogService.log(`Error occurred updating current song to:\n${currentSongText}`);
+                    LogService.log(`Error importing songlist`);
                     res.send(JSON.stringify(response));
                 }
             });
@@ -82,7 +80,6 @@ export class SongRouter {
                     Constants.HTTP_HEADER_CONTENT_TYPE_JSON
                 );
 
-                let currentSongText = ``;
                 let response = {
                     success: false
                 };
@@ -95,7 +92,7 @@ export class SongRouter {
 
                     res.send(JSON.stringify(response));
                 } catch {
-                    LogService.log(`Error occurred updating current song to:\n${currentSongText}`);
+                    LogService.log(`Error occurred getting song data`);
                     res.send(JSON.stringify(response));
                 }
             })
@@ -175,24 +172,111 @@ export class SongRouter {
                 const streamerId = Configuration.getStreamerId()
                 LogService.log(`streamerId: ${streamerId}`);
 
-                let urlString = Constants.URL_SS_GET_LIST;
-                urlString = urlString.replace(/{streamerId}/g, streamerId);
+                let urlString = Constants.URL_SS_SONGS;
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
 
                 const url: URL = new URL(urlString);
                 LogService.log(`url: ${url.toString()}`);
 
                 let params: URLSearchParams = new URLSearchParams()
-                params.append('size', "0")
                 params.append('current', "0")
-                params.append('showInactive', "false")
+                params.append('size', "0")
+                params.append('showInactive', "true")
                 params.append('isNew', "false")
                 params.append('order', "asc")
 
-                url.search = new URLSearchParams(params).toString();
+                url.search = params.toString();
                 LogService.log(`url.search: ${url.search}`);
 
+                const token = Configuration.getStreamerSonglistToken()
+
                 const response = await fetch(url, {
-                    method: 'GET'
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Origin': "troubadour-server",
+                        "x-ssl-user-types": "streamer"
+                    }
+                });
+
+                LogService.log(`response.ok: ${response.ok}`);
+
+                const responseJson = await response.json();
+
+                LogService.log(`Retrieved songList from SS`)
+
+                res.send(responseJson);
+            })
+
+        this.router
+            .route("/ss/song")
+            .put(async function (req, res) {
+                LogService.log("[SongRouter] [PUT] /ss/song");
+
+                const streamerId = Configuration.getStreamerId()
+                LogService.log(`streamerId: ${streamerId}`);
+
+                let songId = req.body.id;
+                const body = req.body
+                const bodyString = JSON.stringify(body)
+                LogService.log(`bodyString: ${bodyString}`);
+
+
+                LogService.log(`songId: ${songId}`);
+
+                let urlString = Constants.URL_SS_SONGS_UPDATE;
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
+                urlString = urlString.replace(/{songId}/g, songId.toString());
+
+                const url: URL = new URL(urlString);
+                LogService.log(`url: ${url.toString()}`);
+
+                const token = Configuration.getStreamerSonglistToken()
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Origin': "troubadour-server"
+                    },
+                    body: bodyString
+                })
+                LogService.log(`response.ok: ${response.ok}`);
+
+                const responseJson = await response.json();
+
+                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
+
+                res.send(responseJson);
+            })
+            .post(async function (req, res) {
+                LogService.log("[SongRouter] [POST] /ss/song");
+
+                const streamerId = Configuration.getStreamerId()
+                LogService.log(`streamerId: ${streamerId}`);
+
+                let songId = req.body.id;
+                const body = req.body
+                const bodyString = JSON.stringify(body)
+                LogService.log(`bodyString: ${bodyString}`);
+
+                let urlString = Constants.URL_SS_SONGS;
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
+
+                const url: URL = new URL(urlString);
+                LogService.log(`url: ${url.toString()}`);
+
+                const token = Configuration.getStreamerSonglistToken()
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Origin': "troubadour-server"
+                    },
+                    body: bodyString
                 });
 
                 LogService.log(`response.ok: ${response.ok}`);
@@ -202,7 +286,7 @@ export class SongRouter {
                 LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
-            })
+            });
 
         this.router
             .route("/ss/queue")
@@ -212,8 +296,8 @@ export class SongRouter {
                 const streamerId = Configuration.getStreamerId()
                 LogService.log(`streamerId: ${streamerId}`);
 
-                let urlString = Constants.URL_SS_GET_QUEUE;
-                urlString = urlString.replace(/{streamerId}/g, streamerId);
+                let urlString = Constants.URL_SS_QUEUE;
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
 
                 const url: URL = new URL(urlString);
                 LogService.log(`url: ${url.toString()}`);
@@ -226,7 +310,7 @@ export class SongRouter {
 
                 const responseJson = await response.json();
 
-                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                //LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
             })
@@ -245,8 +329,8 @@ export class SongRouter {
                 let songId = body.songId;
                 LogService.log(`songId: ${songId}`);
 
-                let urlString = Constants.URL_SS_QUEUE_ADD;
-                urlString = urlString.replace(/{streamerId}/g, streamerId);
+                let urlString = Constants.URL_SS_QUEUE_REQUEST;
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
                 urlString = urlString.replace(/{songId}/g, songId.toString());
 
                 const url: URL = new URL(urlString);
@@ -262,17 +346,17 @@ export class SongRouter {
                         'Origin': "troubadour-server"
                     }
                 });
-                
+
                 LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                //LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
 
                 res.send(responseJson);
             })
 
-            this.router
+        this.router
             .route("/ss/queue/mark")
             .post(async function (req, res) {
                 LogService.log("[SongRouter] [GET] /ss/queue/mark");
@@ -286,8 +370,8 @@ export class SongRouter {
                 let queueId = body.queueId;
                 LogService.log(`queueId: ${queueId}`);
 
-                let urlString = Constants.URL_SS_QUEUE_MARK;
-                urlString = urlString.replace(/{streamerId}/g, streamerId);
+                let urlString = Constants.URL_SS_QUEUE_PLAYED;
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
                 urlString = urlString.replace(/{queueId}/g, queueId.toString());
 
                 const url: URL = new URL(urlString);
@@ -303,7 +387,7 @@ export class SongRouter {
                         'Origin': "troubadour-server"
                     }
                 });
-                
+
                 LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
@@ -313,7 +397,7 @@ export class SongRouter {
                 res.send(responseJson);
 
             })
- 
+
 
         this.router
             .route("/ss/queue/remove")
@@ -330,7 +414,7 @@ export class SongRouter {
                 LogService.log(`queueId: ${queueId}`);
 
                 let urlString = Constants.URL_SS_QUEUE_REMOVE;
-                urlString = urlString.replace(/{streamerId}/g, streamerId);
+                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
                 urlString = urlString.replace(/{queueId}/g, queueId.toString());
 
                 const url: URL = new URL(urlString);
@@ -346,14 +430,12 @@ export class SongRouter {
                         'Origin': "troubadour-server"
                     }
                 });
-                
+
                 LogService.log(`response.ok: ${response.ok}`);
 
                 const responseJson = await response.json();
 
-                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
-
                 res.send(responseJson);
             })
-   }
+    }
 }

@@ -16,11 +16,17 @@ export class TroubadourServer {
         this.expressApp.use(bodyParser.urlencoded({ extended: false }));
         this.expressApp.use(bodyParser.json());
         this.expressApp.use(function (req, res, next) {
-            res.header(Constants.HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, Constants.HTTP_CORS_ORIGIN_STAR);
+            res.header(
+                Constants.HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
+                Constants.HTTP_CORS_ORIGIN_STAR);
             res.header(
                 Constants.HTTP_HEADER_ACCESS_CONTROL_ALLOW_HEADERS,
                 Constants.HTTP_CORS_HEADERS_ALLOWED
             );
+            res.header(
+                Constants.HTTP_HEADER_ACCESS_CONTROL_ALLOW_METHODS,
+                Constants.HTTP_CORS_METHODS_ALLOWED
+            )
             next();
         });
 

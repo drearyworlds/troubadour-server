@@ -5,7 +5,7 @@ class Configuration {
     private static instance: Configuration;
     private static configFileName = 'config.json'
     private databaseConnectionString?: string;
-    private streamerId?: string;
+    private streamerId: number;
     private streamerSonglistToken?: string;
 
     constructor() {

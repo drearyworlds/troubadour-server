@@ -6,15 +6,16 @@
   "main": "dist/main.js",
   "scripts": {
     "clean": "rd /s /q .\\dist && rd /s /q .\\bin",
-    "build": "tsc",
-    "build-electron": "npm run build && npm run copyHtml",
-    "rebuild": "npm run clean && npm run build",
+    "build-cli": "tsc",
+    "build": "yarn run build-cli && yarn run copyHtml",
+    "rebuild-cli": "yarn run clean && yarn run build-cli",
+    "rebuild": "yarn run clean && yarn run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "copyHtml": "copy .\\src\\index.html .\\dist\\",
-    "start": "npm run build && node dist/app.js",
-    "start-electron": "npm run build-electron && electron .",
+    "start-cli": "yarn run build && node dist/app.js",
+    "start": "yarn run build && electron .",
     "pack": "electron-builder --dir",
-    "dist": "npm run build-electron && electron-builder",
+    "dist": "yarn run build && electron-builder",
     "publish": "electron-builder --win --x64 --publish always"
   },
   "build": {
