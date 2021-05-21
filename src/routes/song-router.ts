@@ -109,7 +109,10 @@ export class SongRouter {
 
                 if (SongRouter.currentSong) {
                     let artistComposerString = SongRouter.currentSong.artist;
-                    if (SongRouter.currentSong.composer != undefined
+                    if (SongRouter.currentSong.composer
+                        && SongRouter.currentSong.composer != undefined
+                        && SongRouter.currentSong.composer != null
+                        && SongRouter.currentSong.composer != ""
                         && SongRouter.currentSong.artist != SongRouter.currentSong.composer) {
                         artistComposerString = `${SongRouter.currentSong.artist} (${SongRouter.currentSong.composer})`
                     }
