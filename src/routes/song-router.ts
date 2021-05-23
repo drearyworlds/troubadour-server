@@ -118,22 +118,21 @@ export class SongRouter {
                     }
                     res.send(`<!DOCTYPE HTML>
 <html>
-    <meta http-equiv="refresh" content="3">
+    <meta http-equiv="refresh" content="8">
     <body>
         <div class="label">Current song:</div>
         <div class="data">${artistComposerString}</div>
         <div class="data">"${SongRouter.currentSong.title}"</div>
         <div class="data">${SongRouter.currentSong.album} (${SongRouter.currentSong.year})</div>
+        <div class="dataMinor ">${SongRouter.currentSong.suggestedBy ? "Suggested by " + SongRouter.currentSong.suggestedBy : ""}</div>
     </body>
 </html>
                 `);
                 } else {
                     res.send(`<!DOCTYPE HTML>
 <html>
-    <meta http-equiv="refresh" content="3">
+    <meta http-equiv="refresh" content="1">
     <body>
-        <div class="label">Current song:</div>
-        <div class="data">[None]</div>
     </body>
 </html>
                 `);

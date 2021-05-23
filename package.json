@@ -16,7 +16,7 @@
     "start": "yarn run build && electron .",
     "pack": "electron-builder --dir",
     "dist": "yarn run build && electron-builder",
-    "publish": "electron-builder --win --x64 --publish always"
+    "publish": "yarn run build && electron-builder --win --x64 --publish always"
   },
   "build": {
     "appId": "com.electron.troubadour-server",
@@ -29,7 +29,8 @@
       "!azure-pipelines.yml",
       "!package-lock.json",
       "!README.md",
-      "!tsconfig.json"
+      "!tsconfig.json",
+      "!config.json"
     ],
     "directories": {
       "buildResources": "res",
