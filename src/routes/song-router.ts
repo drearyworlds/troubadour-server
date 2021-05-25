@@ -120,11 +120,21 @@ export class SongRouter {
 <html>
     <meta http-equiv="refresh" content="8">
     <body>
-        <div class="label">Current song:</div>
-        <div class="data">${artistComposerString}</div>
-        <div class="data">"${SongRouter.currentSong.title}"</div>
-        <div class="data">${SongRouter.currentSong.album} (${SongRouter.currentSong.year})</div>
-        <div class="dataMinor ">${SongRouter.currentSong.suggestedBy ? "Suggested by " + SongRouter.currentSong.suggestedBy : ""}</div>
+        <div>
+            <span="currentSongLabel">Current song:</span>
+        </div>
+        <div>
+            <span="artistAndComposer">${artistComposerString}</span>
+        </div>
+        <div>
+            <span="title">"${SongRouter.currentSong.title}"</span>
+        </div>
+        <div>
+            <span="albumAndYear">${SongRouter.currentSong.album} (${SongRouter.currentSong.year})</span>
+        </div>
+        <div>
+            <span="suggestedBy">${SongRouter.currentSong.suggestedBy ? "Suggested by " + SongRouter.currentSong.suggestedBy : ""}</span>
+        </div>
     </body>
 </html>
                 `);
