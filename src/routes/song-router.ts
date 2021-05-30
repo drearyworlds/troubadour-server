@@ -121,9 +121,6 @@ export class SongRouter {
     <meta http-equiv="refresh" content="8">
     <body>
         <div>
-            <span="currentSongLabel">Current song:</span>
-        </div>
-        <div>
             <span="artistAndComposer">${artistComposerString}</span>
         </div>
         <div>
