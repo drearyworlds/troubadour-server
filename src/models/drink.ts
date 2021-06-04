@@ -7,6 +7,7 @@ export interface Drink {
     style: string;
     brewery : string;
     city: string;
+    suggestedBy: String;
 }
 
 export const DrinkSchema = new Schema({
@@ -14,5 +15,6 @@ export const DrinkSchema = new Schema({
     name: String,
     style: String,
     brewery : String,
-    city: String
+    city: String,
+    suggestedBy: String
 });

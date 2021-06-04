@@ -4,6 +4,7 @@ import { SongRouter } from "./routes/song-router";
 import { DrinkRouter } from "./routes/drink-router";
 import DatabaseManager from "./database/database-manager";
 import LogService from "./logging/log-service"
+import { LogLevel } from "./logging/log-service"
 import { Constants } from "./constants";
 
 export class TroubadourServer {
@@ -44,7 +45,7 @@ export class TroubadourServer {
         this.expressApp.use("/", drinkRouter.router);
 
         this.expressApp.listen(this.port, () => {
-            return LogService.log(`Troubadour server is listening on ${this.port}`);
+            return LogService.log(LogLevel.Info, `Troubadour server is listening on ${this.port}`);
         });
     }
 }

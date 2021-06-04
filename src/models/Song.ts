@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-interface SsSong {
+export interface Song {
+    // Maps to id on SsSong
+    ssId: number,
+
+    // Maps directly to fields on SsSong
     artist: string;
     title: string;
     album: string;
@@ -12,17 +16,18 @@ interface SsSong {
     lyrics: string;
     chords: string;
     tab: string;
-}
 
-export interface Song extends SsSong {
+    // Fields that do not exist on SsSong
     id?: number;
     tuning: string;
     pick: boolean;
-    composer : string;
+    composer: string;
     suggestedBy: String;
 }
 
 export const SongSchema = new Schema({
+    ssId: Number,
+
     artist: String,
     title: String,
     album: String,
@@ -34,8 +39,63 @@ export const SongSchema = new Schema({
     chords: String,
     tab: String,
 
-    id: Number,
+    id: Number,    
     tuning: String,
     pick: Boolean,
-    composer : String
+    composer: String,
+    suggestedBy: String
 });
+
+export class SsSong {
+    // Maps to ssId on Song
+    id: number = 0;
+
+    // Maps to custom JSON structure on Song
+    comment: string;
+
+    // Maps directly to fields on Song
+    title: string = "";
+    artist: string = "";
+    capo: number = 0;
+    active: boolean = false;
+    chords: string = "";
+    lyrics: string = "";
+    tab: string = "";
+
+    attributes: AttributeEntity[] = [];
+}
+
+class AttributeEntity {
+}
+
+interface SongRequest {
+    id: number;
+    name: string;
+}
+
+export interface QueueEntry {
+    id: number;
+    song: Song;
+    position: number;
+    requests: SongRequest[];
+}
+
+export interface SongQueue {
+    list: QueueEntry[];
+}
+
+interface SsRequest {
+    id: number;
+    name: string;
+}
+
+export interface SsQueueEntry {
+    id: number;
+    song: SsSong;
+    position: number;
+    requests: SsRequest[];
+}
+
+export interface SsQueue {
+    list: SsQueueEntry[];
+}

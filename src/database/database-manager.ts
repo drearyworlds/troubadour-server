@@ -2,12 +2,13 @@ import fs from "fs";
 import mongoose from "mongoose";
 import Configuration from "../config/configuration-service"
 import LogService from "../logging/log-service"
+import { LogLevel } from "../logging/log-service"
 
 class DatabaseManager {
     private static instance: DatabaseManager;
 
     constructor() {
-        LogService.log("Created new instance of DatabaseManager");
+        LogService.log(LogLevel.Info, "Created new instance of DatabaseManager");
     }
 
     static getInstance(): DatabaseManager {
@@ -18,9 +19,9 @@ class DatabaseManager {
     }
 
     public async connectToDatabase() {
-        LogService.log("connectToDatabase")
+        LogService.log(LogLevel.Info, "connectToDatabase")
         const dbConnectionString = Configuration.getDatabaseConnectionString();
-        LogService.log(dbConnectionString)
+        LogService.log(LogLevel.Info, dbConnectionString)
 
         await mongoose.connect(dbConnectionString, {
             useNewUrlParser: true,
@@ -28,7 +29,7 @@ class DatabaseManager {
             useFindAndModify: false,
             useCreateIndex: true
         }).then(()=> {
-            LogService.log("Connected to database");
+            LogService.log(LogLevel.Info, "Connected to database");
         });
 
         return mongoose.connection;

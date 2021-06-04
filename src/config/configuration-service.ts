@@ -1,5 +1,6 @@
 import fs from "fs";
 import LogService from "../logging/log-service"
+import { LogLevel } from "../logging/log-service"
 
 class Configuration {
     private static instance: Configuration;
@@ -9,11 +10,11 @@ class Configuration {
     private streamerSonglistToken?: string;
 
     constructor() {
-        LogService.log('Created new instance of Configuration');
+        LogService.log(LogLevel.Info, 'Created new instance of Configuration');
     }
 
     public initialize(userDataPath: string) {
-        LogService.log('Initializing Configuration');
+        LogService.log(LogLevel.Info, 'Initializing Configuration');
 
         try {
             const configFileFullPath = `${userDataPath}\\${Configuration.configFileName}`
@@ -21,21 +22,21 @@ class Configuration {
 
             // Load config file only if it exists
             if (fs.existsSync(configFileFullPath)) {
-                LogService.log(`Found config.json at: ${configFileFullPath}`)
+                LogService.log(LogLevel.Info, `Found config.json at: ${configFileFullPath}`)
                 let config = JSON.parse(fs.readFileSync(configFileFullPath).toString());
                 this.databaseConnectionString = config.databaseConnectionString;
                 this.streamerId = config.streamerId;
                 this.streamerSonglistToken = config.streamerSonglistToken;
             } else if (fs.existsSync(configFileCurrentDirectory)) {
-                LogService.log(`Found config.json at: ${configFileCurrentDirectory}`)
+                LogService.log(LogLevel.Info, `Found config.json at: ${configFileCurrentDirectory}`)
                 let config = JSON.parse(fs.readFileSync(configFileCurrentDirectory).toString());
                 this.databaseConnectionString = config.databaseConnectionString;
                 this.streamerId = config.streamerId;
                 this.streamerSonglistToken = config.streamerSonglistToken;
             } else {
-                LogService.log(`configFileFullPath: ${configFileFullPath}`)
-                LogService.log(`configFileCurrentDirectory: ${configFileCurrentDirectory}`)
-                LogService.log("Cannot find config.json!")
+                LogService.log(LogLevel.Info, `configFileFullPath: ${configFileFullPath}`)
+                LogService.log(LogLevel.Info, `configFileCurrentDirectory: ${configFileCurrentDirectory}`)
+                LogService.log(LogLevel.Info, "Cannot find config.json!")
             }
         } catch {
             console.error("Exception initalizing configuration!")

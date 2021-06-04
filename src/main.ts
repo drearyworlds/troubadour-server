@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as url from 'url'
 import Configuration from './config/configuration-service'
 import LogService from './logging/log-service'
+import { LogLevel } from './logging/log-service'
 import { TroubadourServer } from './troubadour-server'
 
 let win: BrowserWindow
@@ -11,7 +12,7 @@ app.on('ready', () => {
   createWindow();
   LogService.win = win
 
-  LogService.log(`Userdata path: ${app.getPath(`userData`)}`)
+  LogService.log(LogLevel.Info, `Userdata path: ${app.getPath(`userData`)}`)
   Configuration.initialize(app.getPath(`userData`))
 
   // Start the Troubadour server

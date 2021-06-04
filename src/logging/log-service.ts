@@ -1,12 +1,16 @@
 import { Notification, BrowserWindow } from 'electron'
 
+export enum LogLevel {
+    Verbose, Info, Success, Warning, Failure
+}
+
 class LogService {
     private static instance: LogService;
     private ReadyForNotifications = false;
     public win: BrowserWindow;
 
     constructor() {
-        this.log('Created new instance of LogService');
+        this.log(LogLevel.Info, 'Created new instance of LogService');
     }
 
     public static getInstance(): LogService {
@@ -20,9 +24,9 @@ class LogService {
         this.ReadyForNotifications = true;
     }
 
-    public log(data: string) {
+    public log(level: LogLevel, message: string, className?: string, methodName?: string) {
         if (this.win) {
-            this.win.webContents.send('log', data);
+            this.win.webContents.send('log', message);
         } else {
             console.log("log: win not ready")
         }

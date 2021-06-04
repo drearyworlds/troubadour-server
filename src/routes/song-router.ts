@@ -1,450 +1,156 @@
 import express from "express";
-import { SongRepository } from "../database/song-repository";
 import { Constants } from "../constants";
-import Configuration from "../config/configuration-service";
-import { Song } from "../models/song";
-import fetch from "node-fetch"
-import LogService from "../logging/log-service"
+import LogService, { LogLevel } from "../logging/log-service"
+import SongService from "../song-service";
 
 export class SongRouter {
     public router = express.Router();
 
-    // Static variable holding current song in memory. Not persistent
-    private static currentSong: Song;
-
     constructor() { }
 
     public createRoutes() {
-        this.router.route("/song/list")
+        this.router
+            .route("/song")
             .get(async function (req, res) {
-                LogService.log("[SongRouter] [GET] /song/list");
-                res.setHeader(
-                    Constants.HTTP_HEADER_CONTENT_TYPE,
-                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
-                );
+                const methodName = "/song";
+                SongRouter.log(LogLevel.Info, "[GET]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
 
-                let songsArray = [];
-                songsArray = await SongRepository.getSongList();
-
-                const songList = {
-                    songs: songsArray
-                };
-
-                LogService.log(`Retrieved songList from db [${songList.songs.length} entries]`)
-
-                const songListJson = JSON.stringify(songList);
-                res.send(songListJson);
-            })
-            .post(async function (req, res) {
-                LogService.log("[SongRouter] [POST] /song/list");
-
-                res.setHeader(
-                    Constants.HTTP_HEADER_CONTENT_TYPE,
-                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
-                );
-
-                let response = {
-                    success: false
-                };
-
-                try {
-                    LogService.log(`body: ${req.body}` || "body: null");
-                    const jsonSongList: string = JSON.stringify(req.body);
-
-                    //LogService.log(`jsonSongList: ${jsonSongList}`)
-
-                    response.success = await SongRepository.importSongListFromJson(jsonSongList);
-
-                    res.send(JSON.stringify(response));
-                } catch {
-                    LogService.log(`Error importing songlist`);
-                    res.send(JSON.stringify(response));
-                }
-            });
-
-        this.router.route("/song/data")
-            .get(async function (req, res) {
-                LogService.log("[SongRouter]:/song/data");
-                res.setHeader(
-                    Constants.HTTP_HEADER_CONTENT_TYPE,
-                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
-                );
-                const songDataJson = await SongRepository.getSongData(+req.query.id);
+                const songDataJson = await SongService.getSongById(+req.query.id);
                 res.send(songDataJson);
             })
             .post(async function (req, res) {
-                LogService.log("[SongRouter] [POST] /song/data");
+                const methodName = "/song";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
 
-                res.setHeader(
-                    Constants.HTTP_HEADER_CONTENT_TYPE,
-                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
-                );
+                const song = req.body;
+                SongRouter.log(LogLevel.Info, req.body || "body: null", methodName);
 
-                let response = {
-                    success: false
-                };
+                const success = await SongService.updateOrInsertSong(song);
+                SongRouter.log(LogLevel.Info, `success: ${success}`, methodName);
+
+                res.send({ success: success });
+            });
+
+        this.router
+            .route("/song/list")
+            .get(async function (req, res) {
+                const methodName = "/song/list";
+                SongRouter.log(LogLevel.Info, "[GET]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
+
+                var songListJson: string = await SongService.getSongList();
+                res.send(songListJson);
+            })
+            .post(async function (req, res) {
+                const methodName = "/song/list";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
+
+                var success: boolean = false;
 
                 try {
-                    LogService.log(req.body || "body: null");
-                    const song = req.body;
-
-                    response.success = await SongRepository.updateOrInsertSong(song)
-
-                    res.send(JSON.stringify(response));
+                    SongRouter.log(LogLevel.Info, `body: ${req.body}` || "body: null", methodName);
+                    const jsonSongList: string = JSON.stringify(req.body);
+                    success = await SongService.importSongListFromJson(jsonSongList);
                 } catch {
-                    LogService.log(`Error occurred getting song data`);
-                    res.send(JSON.stringify(response));
+                    SongRouter.log(LogLevel.Info, `Error importing songlist`, methodName);
                 }
-            })
+
+                res.send(JSON.stringify({ success: success }));
+            });
 
         this.router
             .route("/song/current")
             .get(function (req, res) {
-                LogService.log("[SongRouter] [GET] /song/current");
+                const methodName = "/song/current";
+                SongRouter.log(LogLevel.Info, "[GET]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_HTML);
 
-                res.setHeader(
-                    Constants.HTTP_HEADER_CONTENT_TYPE,
-                    Constants.HTTP_HEADER_CONTENT_TYPE_HTML
-                );
-
-                if (SongRouter.currentSong) {
-                    let artistComposerString = SongRouter.currentSong.artist;
-                    if (SongRouter.currentSong.composer
-                        && SongRouter.currentSong.composer != undefined
-                        && SongRouter.currentSong.composer != null
-                        && SongRouter.currentSong.composer != ""
-                        && SongRouter.currentSong.artist != SongRouter.currentSong.composer) {
-                        artistComposerString = `${SongRouter.currentSong.artist} (${SongRouter.currentSong.composer})`
-                    }
-                    res.send(`<!DOCTYPE HTML>
-<html>
-    <meta http-equiv="refresh" content="8">
-    <body>
-        <div>
-            <span="artistAndComposer">${artistComposerString}</span>
-        </div>
-        <div>
-            <span="title">"${SongRouter.currentSong.title}"</span>
-        </div>
-        <div>
-            <span="albumAndYear">${SongRouter.currentSong.album} (${SongRouter.currentSong.year})</span>
-        </div>
-        <div>
-            <span="suggestedBy">${SongRouter.currentSong.suggestedBy ? "Suggested by " + SongRouter.currentSong.suggestedBy : ""}</span>
-        </div>
-    </body>
-</html>
-                `);
-                } else {
-                    res.send(`<!DOCTYPE HTML>
-<html>
-    <meta http-equiv="refresh" content="1">
-    <body>
-    </body>
-</html>
-                `);
-
-                }
+                let currentSongOverlayHtml = SongService.getCurrentSongOverlay();
+                res.send(currentSongOverlayHtml);
             })
             .post(function (req, res) {
-                LogService.log("[SongRouter] [POST] /song/current");
+                const methodName = "/song/current";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
 
-                res.setHeader(
-                    Constants.HTTP_HEADER_CONTENT_TYPE,
-                    Constants.HTTP_HEADER_CONTENT_TYPE_JSON
-                );
-
-                let currentSongText = ``;
-                let response = {
-                    success: false
-                };
-
-                try {
-                    LogService.log(req.body || "body: null");
-                    const song = req.body;
-                    SongRouter.currentSong = song;
-                    res.send(JSON.stringify(response));
-                } catch {
-                    LogService.log(`Error occurred updating current song to:\n${currentSongText}`);
-                    res.send(JSON.stringify(response));
-                }
+                SongRouter.log(LogLevel.Info, req.body || "body: null", methodName);
+                const song = req.body;
+                const success = SongService.setSongAsCurrent(song);
+                res.send(JSON.stringify({ success: success }));
             })
             .delete(function (req, res) {
-                LogService.log("[SongRouter] [DELETE] /song/current");
+                const methodName = "/song/current";
+                SongRouter.log(LogLevel.Info, "[DELETE]", methodName);
+                res.setHeader(Constants.HTTP_HEADER_CONTENT_TYPE, Constants.HTTP_HEADER_CONTENT_TYPE_JSON);
+
+                const success = SongService.clearCurrentSong();
+                res.send(JSON.stringify({ success: success }));
             });
 
         this.router
-            .route("/ss/list")
+            .route("/song/queue")
             .get(async function (req, res) {
-                LogService.log("[SongRouter] [GET] /ss/list");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
-
-                let urlString = Constants.URL_SS_SONGS;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                let params: URLSearchParams = new URLSearchParams()
-                params.append('current', "0")
-                params.append('size', "0")
-                params.append('showInactive', "true")
-                params.append('isNew', "false")
-                params.append('order', "asc")
-
-                url.search = params.toString();
-                LogService.log(`url.search: ${url.search}`);
-
-                const token = Configuration.getStreamerSonglistToken()
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': "troubadour-server",
-                        "x-ssl-user-types": "streamer"
-                    }
-                });
-
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
-
-                LogService.log(`Retrieved songList from SS`)
-
-                res.send(responseJson);
-            })
-
-        this.router
-            .route("/ss/song")
-            .put(async function (req, res) {
-                LogService.log("[SongRouter] [PUT] /ss/song");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
-
-                let songId = req.body.id;
-                const body = req.body
-                const bodyString = JSON.stringify(body)
-                LogService.log(`bodyString: ${bodyString}`);
-
-
-                LogService.log(`songId: ${songId}`);
-
-                let urlString = Constants.URL_SS_SONGS_UPDATE;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-                urlString = urlString.replace(/{songId}/g, songId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                const token = Configuration.getStreamerSonglistToken()
-
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': "troubadour-server"
-                    },
-                    body: bodyString
-                })
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
-
-                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
-
-                res.send(responseJson);
-            })
-            .post(async function (req, res) {
-                LogService.log("[SongRouter] [POST] /ss/song");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
-
-                let songId = req.body.id;
-                const body = req.body
-                const bodyString = JSON.stringify(body)
-                LogService.log(`bodyString: ${bodyString}`);
-
-                let urlString = Constants.URL_SS_SONGS;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                const token = Configuration.getStreamerSonglistToken()
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': "troubadour-server"
-                    },
-                    body: bodyString
-                });
-
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
-
-                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
-
+                const methodName = "/ss/queue";
+                SongRouter.log(LogLevel.Info, "[GET]", methodName);
+                const responseJson = await SongService.getQueue();
                 res.send(responseJson);
             });
 
         this.router
-            .route("/ss/queue")
-            .get(async function (req, res) {
-                LogService.log("[SongRouter] [GET] /ss/queue");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
-
-                let urlString = Constants.URL_SS_QUEUE;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                const response = await fetch(url, {
-                    method: 'GET'
-                });
-
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
-
-                //LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
-
-                res.send(responseJson);
-            })
-
-        this.router
-            .route("/ss/queue/add")
+            .route("/song/queue/add")
             .post(async function (req, res) {
-                LogService.log("[SongRouter] [GET] /ss/queue/add");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
+                const methodName = "/ss/queue/add";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
 
                 const body = req.body;
-                LogService.log(`body: ${JSON.stringify(body)}`);
+                SongRouter.log(LogLevel.Info, `body: ${JSON.stringify(body)}`, methodName);
 
                 let songId = body.songId;
-                LogService.log(`songId: ${songId}`);
+                SongRouter.log(LogLevel.Info, `songId: ${songId}`, methodName);
 
-                let urlString = Constants.URL_SS_QUEUE_REQUEST;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-                urlString = urlString.replace(/{songId}/g, songId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                const token = Configuration.getStreamerSonglistToken()
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': "troubadour-server"
-                    }
-                });
-
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
-
-                //LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
+                const responseJson = SongService.addToQueue(songId);
 
                 res.send(responseJson);
-            })
+            });
 
         this.router
-            .route("/ss/queue/mark")
+            .route("/song/queue/mark")
             .post(async function (req, res) {
-                LogService.log("[SongRouter] [GET] /ss/queue/mark");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
+                const methodName = "/ss/queue/mark";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
 
                 const body = req.body;
-                LogService.log(`body: ${JSON.stringify(body)}`);
+                SongRouter.log(LogLevel.Info, `body: ${JSON.stringify(body)}`, methodName);
 
                 let queueId = body.queueId;
-                LogService.log(`queueId: ${queueId}`);
+                SongRouter.log(LogLevel.Info, `queueId: ${queueId}`, methodName);
 
-                let urlString = Constants.URL_SS_QUEUE_PLAYED;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-                urlString = urlString.replace(/{queueId}/g, queueId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                const token = Configuration.getStreamerSonglistToken()
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': "troubadour-server"
-                    }
-                });
-
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
-
-                LogService.log(`responseJson: ${JSON.stringify(responseJson)}`);
-
+                const responseJson = await SongService.markAsPlayed(queueId);
                 res.send(responseJson);
-
-            })
-
+            });
 
         this.router
-            .route("/ss/queue/remove")
+            .route("/song/queue/remove")
             .post(async function (req, res) {
-                LogService.log("[SongRouter] [GET] /ss/queue/remove");
-
-                const streamerId = Configuration.getStreamerId()
-                LogService.log(`streamerId: ${streamerId}`);
+                const methodName = "/ss/queue/remove";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
 
                 const body = req.body;
-                LogService.log(`body: ${JSON.stringify(body)}`);
+                SongRouter.log(LogLevel.Info, `body: ${JSON.stringify(body)}`, methodName);
 
                 let queueId = body.queueId;
-                LogService.log(`queueId: ${queueId}`);
+                SongRouter.log(LogLevel.Info, `queueId: ${queueId}`, methodName);
 
-                let urlString = Constants.URL_SS_QUEUE_REMOVE;
-                urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
-                urlString = urlString.replace(/{queueId}/g, queueId.toString());
-
-                const url: URL = new URL(urlString);
-                LogService.log(`url: ${url.toString()}`);
-
-                const token = Configuration.getStreamerSonglistToken()
-
-                const response = await fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': "troubadour-server"
-                    }
-                });
-
-                LogService.log(`response.ok: ${response.ok}`);
-
-                const responseJson = await response.json();
+                const responseJson = await SongService.removeFromQueue(queueId);
 
                 res.send(responseJson);
-            })
+            });
+    }
+
+    static log(level: LogLevel, message: string, methodName: string) {
+        LogService.log(level, message, this.constructor.name, methodName);
     }
 }
