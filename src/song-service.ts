@@ -178,11 +178,17 @@ class SongService {
     async getSongById(songId: number): Promise<string> {
         const methodName = this.getSongById.name;
         const songDocument = await SongRepository.getSongData(songId);
-        let song: Song = JSON.parse(JSON.stringify(songDocument));
-        this.mergeSong(song)
-        const songJson = JSON.stringify(song);
-        this.log(LogLevel.Info, `Fetched song by ID: ${songJson}`, methodName);
-        return songJson;
+
+        if (songDocument) {
+            this.log(LogLevel.Info, `Fetched song by ID: ${songDocument.id}`, methodName);            
+            let song: Song = JSON.parse(JSON.stringify(songDocument));
+            this.mergeSong(song)
+            const songJson = JSON.stringify(song);
+            this.log(LogLevel.Verbose, `Fetched song by ID (json): ${songJson}`, methodName);
+            return songJson;
+        }
+
+        return null;
     }
 
     async importSongListFromJson(jsonSongList: string): Promise<boolean> {
@@ -230,7 +236,12 @@ class SongService {
             songQueue.list.push(queueEntry);
         }
 
-        return JSON.stringify(songQueue);
+        var songQueueJson = JSON.stringify(songQueue);
+        
+        this.log(LogLevel.Verbose, `songQueueJson: ${songQueueJson}`, methodName);
+
+        return songQueueJson;
+        
     }
 
     async addToQueue(songId: number): Promise<string> {
