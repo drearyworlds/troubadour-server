@@ -371,6 +371,16 @@ class SongService {
                 && this.currentSong.artist != this.currentSong.composer) {
                 artistComposerString = `${this.currentSong.artist} (${this.currentSong.composer})`
             }
+
+            let suggestedByString = "";
+            if (this.currentSong.suggestedBy
+                && this.currentSong.suggestedBy != undefined
+                && this.currentSong.suggestedBy != null
+                && this.currentSong.suggestedBy != ""
+                && this.currentSong.suggestedBy != "drearyworlds") {
+                    suggestedByString = `${this.currentSong.suggestedBy ? "Suggested by " + this.currentSong.suggestedBy : ""}`
+            }
+
             return `
                 <!DOCTYPE HTML>
                 <html>
@@ -389,7 +399,7 @@ class SongService {
                             <h2>${this.currentSong.album} (${this.currentSong.year})</h2>
                         </div>
                         <div>
-                            <h3>${this.currentSong.suggestedBy ? "Suggested by " + this.currentSong.suggestedBy : ""}</h3>
+                            <h3>${suggestedByString}</h3>
                         </div>
                     </body>
                 </html>
