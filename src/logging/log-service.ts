@@ -27,8 +27,10 @@ class LogService {
     public log(level: LogLevel, message: string, className?: string, methodName?: string) {
         if (this.win) {
             this.win.webContents.send('log', message);
+            console.log(message);
         } else {
             console.log("log: win not ready")
+            console.log(message);
         }
     }
 

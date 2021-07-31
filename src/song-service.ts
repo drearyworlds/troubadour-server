@@ -76,6 +76,15 @@ class SongService {
             this.setSsSongFieldsFromSong(song, ssSongToReturn);
         } else {
             this.log(LogLevel.Warning, "Could not find a match for song: " + JSON.stringify(song), methodName);
+
+            try {
+                ssSongToReturn.artist = song.artist;
+                ssSongToReturn.active = song.active;
+                ssSongToReturn.title = song.title;
+                ssSongToReturn.id = song.ssId;
+            } catch (e) {
+                this.log(LogLevel.Failure, e.Message, methodName);
+            }
         }
 
         return ssSongToReturn;
@@ -87,28 +96,34 @@ class SongService {
     // Otherwise, it will return null
     private mergeSsSong(ssSong: SsSong) {
         const methodName = this.mergeSsSong.name;
-        var matched: boolean = false;
-        var songToReturn: Song = null;
+        try {
+            var matched: boolean = false;
+            var songToReturn: Song = null;
 
-        for (var existingSong of this.songs) {
-            if (ssSong.id == existingSong.id) {
-                this.log(LogLevel.Verbose, `Matched by ssId: ${ssSong.id}`, methodName)
-                songToReturn = existingSong;
-                matched = true;
-                break;
-            } else if (ssSong.artist == existingSong.artist && ssSong.title == existingSong.title) {
-                this.log(LogLevel.Verbose, `Matched by artist/title: ${ssSong.artist}/${ssSong.title}`, methodName)
-                songToReturn = existingSong;
-                matched = true;
-                break;
+            for (var existingSong of this.songs) {
+                if (ssSong.id == existingSong.id) {
+                    this.log(LogLevel.Verbose, `Matched by ssId: ${ssSong.id}`, methodName)
+                    songToReturn = existingSong;
+                    matched = true;
+                    break;
+                } else if (ssSong.artist == existingSong.artist && ssSong.title == existingSong.title) {
+                    this.log(LogLevel.Verbose, `Matched by artist/title: ${ssSong.artist}/${ssSong.title}`, methodName)
+                    songToReturn = existingSong;
+                    matched = true;
+                    break;
+                }
             }
-        }
 
-        if (matched) {
-            // Update everything on the Song object
-            this.setSsSongFieldsFromSong(songToReturn, ssSong);
-        } else {
-            this.log(LogLevel.Warning, "Could not find a match for ssSong: " + JSON.stringify(ssSong), methodName);
+            if (matched) {
+                this.log(LogLevel.Verbose, "Matching fields from song", methodName);
+
+                // Update everything on the Song object
+                this.setSsSongFieldsFromSong(songToReturn, ssSong);
+            } else {
+                this.log(LogLevel.Warning, "Could not find a match for ssSong: " + JSON.stringify(ssSong), methodName);
+            }
+        } catch (e) {
+            this.log(LogLevel.Failure, e.Message, methodName);
         }
 
         return songToReturn;
@@ -117,7 +132,7 @@ class SongService {
     private setSsSongFieldsFromSong(song: Song, ssSong: SsSong) {
         const methodName = this.setSsSongFieldsFromSong.name;
         this.log(LogLevel.Verbose, "Setting fields on SsSong from Song", methodName);
-        
+
         ssSong.artist = song.artist;
         ssSong.title = song.title;
         ssSong.active = song.active;
@@ -180,7 +195,7 @@ class SongService {
         const songDocument = await SongRepository.getSongData(songId);
 
         if (songDocument) {
-            this.log(LogLevel.Info, `Fetched song by ID: ${songDocument.id}`, methodName);            
+            this.log(LogLevel.Info, `Fetched song by ID: ${songDocument.id}`, methodName);
             let song: Song = JSON.parse(JSON.stringify(songDocument));
             this.mergeSong(song)
             const songJson = JSON.stringify(song);
@@ -203,7 +218,7 @@ class SongService {
         var songDocuments = await SongRepository.getSongList();
         this.log(LogLevel.Info, `Retrieved songs from db (${songDocuments.length} entries)`, methodName)
         this.songs = JSON.parse(JSON.stringify(songDocuments));
-        
+
         const streamerId = Configuration.getStreamerId()
         this.log(LogLevel.Info, `streamerId: ${streamerId}`, methodName);
 
@@ -224,10 +239,10 @@ class SongService {
         this.log(LogLevel.Verbose, `ssQueueEntries: ${JSON.stringify(ssQueueEntries)}`, methodName);
 
         let songQueue: SongQueue = {
-           list: [] 
+            list: []
         };
         for (let ssQueueEntry of ssQueueEntries.list) {
-            let queueEntry : QueueEntry = {
+            let queueEntry: QueueEntry = {
                 id: ssQueueEntry.id,
                 position: ssQueueEntry.position,
                 requests: ssQueueEntry.requests[0],
@@ -237,11 +252,11 @@ class SongService {
         }
 
         var songQueueJson = JSON.stringify(songQueue);
-        
+
         this.log(LogLevel.Verbose, `songQueueJson: ${songQueueJson}`, methodName);
 
         return songQueueJson;
-        
+
     }
 
     async addToQueue(songId: number): Promise<string> {
@@ -250,7 +265,7 @@ class SongService {
         this.log(LogLevel.Info, `streamerId: ${streamerId}`, methodName);
 
         // Get the song, which should have an ssId
-        let song : Song = JSON.parse(await this.getSongById(songId))
+        let song: Song = JSON.parse(await this.getSongById(songId))
 
         let urlString = Constants.URL_SS_QUEUE_REQUEST;
         urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
@@ -305,6 +320,54 @@ class SongService {
         const responseJson = await response.json();
 
         this.log(LogLevel.Info, `responseJson: ${responseJson}`, methodName);
+
+        return responseJson;
+    }
+
+    async markNonQueueSongAsPlayed(songId : number): Promise<string> {
+        const methodName = this.markNonQueueSongAsPlayed.name;
+
+        this.log(LogLevel.Info, "test1", methodName);
+
+        const streamerId = Configuration.getStreamerId()
+
+        this.log(LogLevel.Info, `streamerId: ${streamerId}`, methodName);
+
+        let urlString = Constants.URL_SS_PLAY_HISTORY;
+        urlString = urlString.replace(/{streamerId}/g, streamerId.toString());
+
+        const url: URL = new URL(urlString);
+        this.log(LogLevel.Info, `url: ${url.toString()}`, methodName);
+
+        const token = Configuration.getStreamerSonglistToken()
+
+        const postBody = {
+            "song": {
+                "id": songId
+            },
+            "streamer": {
+                "id": streamerId
+            }
+        }
+
+        const postJson = JSON.stringify(postBody)
+        this.log(LogLevel.Verbose, `ssSongJson: ${postJson}`, methodName);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Origin': "troubadour-server"
+            },
+            body: postJson
+        });
+
+        this.log(LogLevel.Info, `response.ok: ${response.ok}`, methodName);
+
+        const responseJson = await response.json();
+
+        this.log(LogLevel.Info, `responseJson: ${JSON.stringify(responseJson)}`, methodName);
 
         return responseJson;
     }
@@ -378,7 +441,7 @@ class SongService {
                 && this.currentSong.suggestedBy != null
                 && this.currentSong.suggestedBy != ""
                 && this.currentSong.suggestedBy != "drearyworlds") {
-                    suggestedByString = `${this.currentSong.suggestedBy ? "Suggested by " + this.currentSong.suggestedBy : ""}`
+                suggestedByString = `${this.currentSong.suggestedBy ? "Suggested by " + this.currentSong.suggestedBy : ""}`
             }
 
             return `
@@ -440,7 +503,7 @@ class SongService {
                 // Create a new SsSong
                 ssSong = new SsSong();
                 this.log(LogLevel.Verbose, "Creating new SsSong", methodName)
-        
+
                 this.setSsSongFieldsFromSong(song, ssSong);
 
                 // Add it to SS

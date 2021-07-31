@@ -17,4 +17,5 @@ export class Constants {
     static URL_SS_QUEUE_REQUEST: string = `https://api.streamersonglist.com/v1/streamers/{streamerId}/queue/{songId}/request`;
     static URL_SS_QUEUE_PLAYED: string  = `https://api.streamersonglist.com/v1/streamers/{streamerId}/queue/{queueId}/played`
     static URL_SS_QUEUE_REMOVE: string  = `https://api.streamersonglist.com/v1/streamers/{streamerId}/queue/{queueId}`;
+    static URL_SS_PLAY_HISTORY: string   = `https://api.streamersonglist.com/v1/streamers/{streamerId}/playHistory`;
 }

@@ -91,9 +91,33 @@ export class SongRouter {
             });
 
         this.router
+            .route("/song/mark")
+            .get(async function (req, res) {
+                const methodName = "/song/mark";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
+                res.send("derp");
+            })
+            .post(async function (req, res) {
+                const methodName = "/song/mark";
+                SongRouter.log(LogLevel.Info, "[POST]", methodName);
+
+                const body = req.body;
+                SongRouter.log(LogLevel.Info, `body: ${JSON.stringify(body)}`, methodName);
+
+                let songId = body.songId;
+                SongRouter.log(LogLevel.Info, `songId: ${songId}`, methodName);
+
+                const responseJson = await SongService.markNonQueueSongAsPlayed(songId);
+
+                SongRouter.log(LogLevel.Info, `responseJson: ${responseJson}`, methodName);
+
+                res.send(responseJson);
+            });
+
+        this.router
             .route("/song/queue")
             .get(async function (req, res) {
-                const methodName = "/ss/queue";
+                const methodName = "/song/queue";
                 SongRouter.log(LogLevel.Info, "[GET]", methodName);
                 const responseJson = await SongService.getQueue();
                 res.send(responseJson);
@@ -102,7 +126,7 @@ export class SongRouter {
         this.router
             .route("/song/queue/add")
             .post(async function (req, res) {
-                const methodName = "/ss/queue/add";
+                const methodName = "/song/queue/add";
                 SongRouter.log(LogLevel.Info, "[POST]", methodName);
 
                 const body = req.body;
@@ -119,7 +143,7 @@ export class SongRouter {
         this.router
             .route("/song/queue/mark")
             .post(async function (req, res) {
-                const methodName = "/ss/queue/mark";
+                const methodName = "/song/queue/mark";
                 SongRouter.log(LogLevel.Info, "[POST]", methodName);
 
                 const body = req.body;
@@ -135,7 +159,7 @@ export class SongRouter {
         this.router
             .route("/song/queue/remove")
             .post(async function (req, res) {
-                const methodName = "/ss/queue/remove";
+                const methodName = "/song/queue/remove";
                 SongRouter.log(LogLevel.Info, "[POST]", methodName);
 
                 const body = req.body;
@@ -151,6 +175,7 @@ export class SongRouter {
     }
 
     static log(level: LogLevel, message: string, methodName: string) {
+        console.log(message);
         LogService.log(level, message, this.constructor.name, methodName);
     }
 }
