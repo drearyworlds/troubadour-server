@@ -17,6 +17,10 @@ export interface Song {
     chords: string;
     tab: string;
 
+    dateAdded: Date, //createdAt
+    lastPlayed: Date,
+    playCount: number, //timesPlayed
+
     // Fields that do not exist on SsSong
     id?: number;
     tuning: string;
@@ -61,6 +65,10 @@ export class SsSong {
     chords: string = "";
     lyrics: string = "";
     tab: string = "";
+
+    createdAt: Date;
+    lastPlayed: Date;
+    timesPlayed: number;
 
     attributes: AttributeEntity[] = [];
 }

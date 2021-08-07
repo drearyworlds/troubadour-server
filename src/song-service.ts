@@ -69,8 +69,11 @@ class SongService {
         }
 
         if (matched) {
-            // Update the ID on the Song object
+            // Update the date for which SsSong is source of truth
             song.ssId = ssSongToReturn.id;
+            song.dateAdded = ssSongToReturn.createdAt;
+            song.lastPlayed = ssSongToReturn.lastPlayed;
+            song.playCount = ssSongToReturn.timesPlayed;
 
             // Update everything on the SsSong object
             this.setSsSongFieldsFromSong(song, ssSongToReturn);

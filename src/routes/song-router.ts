@@ -94,7 +94,7 @@ export class SongRouter {
             .route("/song/mark")
             .get(async function (req, res) {
                 const methodName = "/song/mark";
-                SongRouter.log(LogLevel.Info, "[POST]", methodName);
+                SongRouter.log(LogLevel.Info, "[GET]", methodName);
                 res.send("derp");
             })
             .post(async function (req, res) {
