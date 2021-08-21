@@ -20,6 +20,7 @@ export interface Song {
     dateAdded: Date, //createdAt
     datePlayed: Date, //lastPlayed
     playCount: number, //timesPlayed
+    requestedBy: string, //???
 
     // Fields that do not exist on SsSong
     id?: number;

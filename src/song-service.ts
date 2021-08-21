@@ -52,45 +52,41 @@ class SongService {
     private mergeSong(song: Song): SsSong {
         const methodName = this.mergeSong.name;
         var matched: boolean = false;
-        var ssSongToReturn: SsSong = null;
+        var ssSong: SsSong = null;
 
         for (var existingSsSong of this.ssSongs) {
             if (song.ssId == existingSsSong.id) {
                 this.log(LogLevel.Verbose, `Matched by ssId: ${song.ssId}`, methodName)
-                ssSongToReturn = existingSsSong;
+                ssSong = existingSsSong;
                 matched = true;
                 break;
             } else if (song.artist == existingSsSong.artist && song.title == existingSsSong.title) {
                 this.log(LogLevel.Verbose, `Matched by artist/title: ${song.artist}/${song.title}`, methodName)
-                ssSongToReturn = existingSsSong;
+                ssSong = existingSsSong;
                 matched = true;
                 break;
             }
         }
 
         if (matched) {
-            // Update the date for which SsSong is source of truth
-            song.ssId = ssSongToReturn.id;
-            song.dateAdded = ssSongToReturn.createdAt;
-            song.datePlayed = ssSongToReturn.lastPlayed;
-            song.playCount = ssSongToReturn.timesPlayed;
+            // Update the data for which SsSong is source of truth
+            this.setSongFieldsFromSsSong(song, ssSong);
 
-            // Update everything on the SsSong object
-            this.setSsSongFieldsFromSong(song, ssSongToReturn);
+            // Update the data for which Song is source of truth
+            this.setSsSongFieldsFromSong(ssSong, song);
         } else {
             this.log(LogLevel.Warning, "Could not find a match for song: " + JSON.stringify(song), methodName);
 
             try {
-                ssSongToReturn.artist = song.artist;
-                ssSongToReturn.active = song.active;
-                ssSongToReturn.title = song.title;
-                ssSongToReturn.id = song.ssId;
+                // Update the data for which Song is source of truth
+                ssSong.id = song.ssId;
+                this.setSsSongFieldsFromSong(ssSong, song);
             } catch (e) {
                 this.log(LogLevel.Failure, e.Message, methodName);
             }
         }
 
-        return ssSongToReturn;
+        return ssSong;
     }
 
     // Merge tries to find a matching song in songs by ssId or artist/title,
@@ -120,8 +116,8 @@ class SongService {
             if (matched) {
                 this.log(LogLevel.Verbose, "Matching fields from song", methodName);
 
-                // Update everything on the Song object
-                this.setSsSongFieldsFromSong(songToReturn, ssSong);
+                // Update everything on the SsSong object
+                this.setSsSongFieldsFromSong(ssSong, songToReturn);
             } else {
                 this.log(LogLevel.Warning, "Could not find a match for ssSong: " + JSON.stringify(ssSong), methodName);
             }
@@ -132,7 +128,17 @@ class SongService {
         return songToReturn;
     }
 
-    private setSsSongFieldsFromSong(song: Song, ssSong: SsSong) {
+    private setSongFieldsFromSsSong(song: Song, ssSong: SsSong) {
+        const methodName = this.setSongFieldsFromSsSong.name;
+        this.log(LogLevel.Verbose, "Setting fields on Song from SsSong", methodName);
+
+        song.ssId = ssSong.id;
+        song.dateAdded = ssSong.createdAt;
+        song.datePlayed = ssSong.lastPlayed;
+        song.playCount = ssSong.timesPlayed;
+    }
+
+    private setSsSongFieldsFromSong(ssSong: SsSong, song: Song) {
         const methodName = this.setSsSongFieldsFromSong.name;
         this.log(LogLevel.Verbose, "Setting fields on SsSong from Song", methodName);
 
@@ -444,7 +450,16 @@ class SongService {
                 && this.currentSong.suggestedBy != null
                 && this.currentSong.suggestedBy != ""
                 && this.currentSong.suggestedBy != "drearyworlds") {
-                suggestedByString = `${this.currentSong.suggestedBy ? "Suggested by " + this.currentSong.suggestedBy : ""}`
+                suggestedByString = `${this.currentSong.suggestedBy ? "Learned for " + this.currentSong.suggestedBy : ""}`
+            }
+
+            let requestedByString = "";
+            if (this.currentSong.requestedBy
+                && this.currentSong.requestedBy != undefined
+                && this.currentSong.requestedBy != null
+                && this.currentSong.requestedBy != ""
+                && this.currentSong.requestedBy != "drearyworlds") {
+                requestedByString = `${this.currentSong.requestedBy ? "Requested by " + this.currentSong.requestedBy : ""}`
             }
 
             return `
@@ -466,6 +481,9 @@ class SongService {
                         </div>
                         <div>
                             <h3>${suggestedByString}</h3>
+                        </div>
+                        <div>
+                            <h3>${requestedByString}</h3>
                         </div>
                     </body>
                 </html>
@@ -507,7 +525,7 @@ class SongService {
                 ssSong = new SsSong();
                 this.log(LogLevel.Verbose, "Creating new SsSong", methodName)
 
-                this.setSsSongFieldsFromSong(song, ssSong);
+                this.setSsSongFieldsFromSong(ssSong, song);
 
                 // Add it to SS
                 ssSuccess = await this.insertStreamerSonglistSong(ssSong);
