@@ -72,7 +72,7 @@ class SongService {
             // Update the date for which SsSong is source of truth
             song.ssId = ssSongToReturn.id;
             song.dateAdded = ssSongToReturn.createdAt;
-            song.lastPlayed = ssSongToReturn.lastPlayed;
+            song.datePlayed = ssSongToReturn.lastPlayed;
             song.playCount = ssSongToReturn.timesPlayed;
 
             // Update everything on the SsSong object
@@ -327,7 +327,7 @@ class SongService {
         return responseJson;
     }
 
-    async markNonQueueSongAsPlayed(songId : number): Promise<string> {
+    async markNonQueueSongAsPlayed(songId: number): Promise<string> {
         const methodName = this.markNonQueueSongAsPlayed.name;
 
         this.log(LogLevel.Info, "test1", methodName);

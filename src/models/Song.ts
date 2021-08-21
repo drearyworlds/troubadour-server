@@ -18,7 +18,7 @@ export interface Song {
     tab: string;
 
     dateAdded: Date, //createdAt
-    lastPlayed: Date,
+    datePlayed: Date, //lastPlayed
     playCount: number, //timesPlayed
 
     // Fields that do not exist on SsSong
