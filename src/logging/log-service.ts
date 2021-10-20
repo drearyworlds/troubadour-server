@@ -1,7 +1,7 @@
 import { Notification, BrowserWindow } from 'electron'
 
 export enum LogLevel {
-    Verbose, Info, Success, Warning, Failure
+    Verbose, Info, Success, Warning, Exception, Failure
 }
 
 class LogService {
@@ -40,18 +40,21 @@ class LogService {
             case LogLevel.Warning:
                 logMessage = `Warning: ${logMessage}`
                 break;
+            case LogLevel.Exception:
+                logMessage = `Exception: ${logMessage}`
+                break;
             case LogLevel.Failure:
                 logMessage = `Failure: ${logMessage}`
                 break;
         }
 
         // Constrain log messages to 64 characters
-        if (logMessage.length > 64) {
-            logMessage = `${logMessage.substring(0, 128)}[...]`;
+        const maxLogLengthChars = 128;
+        if (logMessage.length > maxLogLengthChars) {
+            logMessage = `${logMessage.substring(0, maxLogLengthChars)}[...]`;
         }
 
         logMessage = `[${className}] [${methodName}] ${logMessage}`;
-
 
         if (this.win) {
             this.win.webContents.send('log', logMessage);

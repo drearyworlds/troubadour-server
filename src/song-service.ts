@@ -82,7 +82,7 @@ class SongService {
                 ssSong.id = song.ssId;
                 this.setSsSongFieldsFromSong(ssSong, song);
             } catch (e) {
-                this.log(LogLevel.Failure, e.Message, methodName);
+                this.log(LogLevel.Exception, e, methodName);
             }
         }
 
@@ -444,23 +444,20 @@ class SongService {
                 artistComposerString = `${this.currentSong.artist} (${this.currentSong.composer})`
             }
 
-            let suggestedByString = "";
-            if (this.currentSong.suggestedBy
+            let hasLearnedForString = (this.currentSong.suggestedBy
                 && this.currentSong.suggestedBy != undefined
                 && this.currentSong.suggestedBy != null
                 && this.currentSong.suggestedBy != ""
-                && this.currentSong.suggestedBy != "drearyworlds") {
-                suggestedByString = `${this.currentSong.suggestedBy ? "Learned for " + this.currentSong.suggestedBy : ""}`
-            }
+                && this.currentSong.suggestedBy != "drearyworlds");
 
-            let requestedByString = "";
-            if (this.currentSong.requestedBy
+            let hasRequestedByString = (this.currentSong.requestedBy
                 && this.currentSong.requestedBy != undefined
                 && this.currentSong.requestedBy != null
                 && this.currentSong.requestedBy != ""
-                && this.currentSong.requestedBy != "drearyworlds") {
-                requestedByString = `${this.currentSong.requestedBy ? "Requested by " + this.currentSong.requestedBy : ""}`
-            }
+                && this.currentSong.requestedBy != "drearyworlds");
+
+            let learnedForDiv = hasLearnedForString ? `<div><h3>${"Learned for "  + this.currentSong.suggestedBy}</h3></div>` : "";
+            let requestedByDiv = hasRequestedByString ? `<div><h3>${"Requested by " + this.currentSong.requestedBy}</h3></div>` : "";
 
             return `
                 <!DOCTYPE HTML>
@@ -479,12 +476,8 @@ class SongService {
                         <div>
                             <h2>${this.currentSong.album} (${this.currentSong.year})</h2>
                         </div>
-                        <div>
-                            <h3>${suggestedByString}</h3>
-                        </div>
-                        <div>
-                            <h3>${requestedByString}</h3>
-                        </div>
+                        ${learnedForDiv}
+                        ${requestedByDiv}
                     </body>
                 </html>
             `;
