@@ -78,8 +78,17 @@ class SongService {
             this.log(LogLevel.Warning, "Could not find a match for song: " + JSON.stringify(song), methodName);
 
             try {
-                // Update the data for which Song is source of truth
+                // Maybe a live learn? Create a new SsSong Entry
+                ssSong = new SsSong();
                 ssSong.id = song.ssId;
+                if (ssSong.title) {
+                    this.log(LogLevel.Failure, "Found title", methodName);
+                    ssSong.title = ssSong.nonlistSong;
+                } else if (ssSong.nonlistSong) {
+                    this.log(LogLevel.Failure, "Found nonlistSong", methodName);
+                    ssSong.title = ssSong.nonlistSong;
+                }
+                // Update the data for which Song is source of truth
                 this.setSsSongFieldsFromSong(ssSong, song);
             } catch (e) {
                 this.log(LogLevel.Exception, e, methodName);
@@ -90,8 +99,8 @@ class SongService {
     }
 
     // Merge tries to find a matching song in songs by ssId or artist/title,
-    // If it matches, it will update the ssId on the song
-    // and return the song populated with the data from the song.
+    // If it matches, it will update the ssId on the Song
+    // and return the matched Song populated with the data from the SsSong.
     // Otherwise, it will return null
     private mergeSsSong(ssSong: SsSong) {
         const methodName = this.mergeSsSong.name;
@@ -119,6 +128,13 @@ class SongService {
                 // Update everything on the SsSong object
                 this.setSsSongFieldsFromSong(ssSong, songToReturn);
             } else {
+                // Update everything on the Song object
+                songToReturn = new Song();
+
+                if (ssSong.title) {
+                    songToReturn.title = ssSong.title;
+                }
+                this.setSongFieldsFromSsSong(songToReturn, ssSong);
                 this.log(LogLevel.Warning, "Could not find a match for ssSong: " + JSON.stringify(ssSong), methodName);
             }
         } catch (e) {
@@ -130,7 +146,7 @@ class SongService {
 
     private setSongFieldsFromSsSong(song: Song, ssSong: SsSong) {
         const methodName = this.setSongFieldsFromSsSong.name;
-        this.log(LogLevel.Verbose, "Setting fields on Song from SsSong", methodName);
+        //this.log(LogLevel.Verbose, "Setting fields on Song from SsSong", methodName);
 
         song.ssId = ssSong.id;
         song.dateAdded = ssSong.createdAt;
@@ -140,7 +156,7 @@ class SongService {
 
     private setSsSongFieldsFromSong(ssSong: SsSong, song: Song) {
         const methodName = this.setSsSongFieldsFromSong.name;
-        this.log(LogLevel.Verbose, "Setting fields on SsSong from Song", methodName);
+        //this.log(LogLevel.Verbose, "Setting fields on SsSong from Song", methodName);
 
         ssSong.artist = song.artist;
         ssSong.title = song.title;
@@ -251,6 +267,11 @@ class SongService {
             list: []
         };
         for (let ssQueueEntry of ssQueueEntries.list) {
+            if (!ssQueueEntry.song) {
+                ssQueueEntry.song = new SsSong();
+                ssQueueEntry.song.title = ssQueueEntry.nonlistSong;
+            }
+
             let queueEntry: QueueEntry = {
                 id: ssQueueEntry.id,
                 position: ssQueueEntry.position,
@@ -436,29 +457,54 @@ class SongService {
         const methodName = this.getCurrentSongOverlay.name;
         if (this.currentSong) {
             let artistComposerString = this.currentSong.artist;
+
             if (this.currentSong.composer
                 && this.currentSong.composer != undefined
                 && this.currentSong.composer != null
                 && this.currentSong.composer != ""
-                && this.currentSong.artist != this.currentSong.composer) {
+                && this.currentSong.artist != this.currentSong.composer) {              
                 artistComposerString = `${this.currentSong.artist} (${this.currentSong.composer})`
             }
+            
+            let hasArtistComposerString = (artistComposerString
+                && artistComposerString != undefined
+                && artistComposerString != null
+                && artistComposerString != "");
+            let artistComposerDiv = hasArtistComposerString ? `<div><h2>${artistComposerString}</h2></div>` : ``;
 
-            let hasLearnedForString = (this.currentSong.suggestedBy
+            let hasTitle = (this.currentSong.title
+                && this.currentSong.title != undefined
+                && this.currentSong.title != null
+                && this.currentSong.title != "");
+            let titleDiv = hasTitle ? `<div><h1>"${this.currentSong.title}"</h1></div>` : ``;
+            
+            let hasLearnedFor = (this.currentSong.suggestedBy
                 && this.currentSong.suggestedBy != undefined
                 && this.currentSong.suggestedBy != null
                 && this.currentSong.suggestedBy != ""
                 && this.currentSong.suggestedBy != "drearyworlds");
+            let learnedForDiv = hasLearnedFor ? `<div><h3>${"Learned for "  + this.currentSong.suggestedBy}</h3></div>` : ``;
 
-            let hasRequestedByString = (this.currentSong.requestedBy
+            let hasRequestedBy = (this.currentSong.requestedBy
                 && this.currentSong.requestedBy != undefined
                 && this.currentSong.requestedBy != null
                 && this.currentSong.requestedBy != ""
                 && this.currentSong.requestedBy != "drearyworlds");
+            let requestedByDiv = hasRequestedBy ? `<div><h3>${"Requested by " + this.currentSong.requestedBy}</h3></div>` : ``;
 
-            let learnedForDiv = hasLearnedForString ? `<div><h3>${"Learned for "  + this.currentSong.suggestedBy}</h3></div>` : "";
-            let requestedByDiv = hasRequestedByString ? `<div><h3>${"Requested by " + this.currentSong.requestedBy}</h3></div>` : "";
+            let hasYear = (this.currentSong.year
+                && this.currentSong.year != undefined
+                && this.currentSong.year != null);
+            let yearString = hasYear ? `(${this.currentSong.year})` : ``;
 
+            let hasAlbum = (this.currentSong.album
+                && this.currentSong.album != undefined
+                && this.currentSong.album != null
+                && this.currentSong.album != ""
+                && this.currentSong.album != "Unreleased");
+
+            let albumDiv = hasAlbum ? `<div><h2>${this.currentSong.album} ${yearString}</h2></div>` : ``;
+            
             return `
                 <!DOCTYPE HTML>
                 <html>
@@ -467,15 +513,9 @@ class SongService {
                         <div>
                             <h3>Current Song</h3>
                         </div>
-                        <div>
-                            <h2>${artistComposerString}</h2>
-                        </div>
-                        <div>
-                            <h1>"${this.currentSong.title}"</h1>
-                        </div>
-                        <div>
-                            <h2>${this.currentSong.album} (${this.currentSong.year})</h2>
-                        </div>
+                        ${artistComposerDiv}
+                        ${titleDiv}
+                        ${albumDiv}
                         ${learnedForDiv}
                         ${requestedByDiv}
                     </body>
@@ -486,8 +526,7 @@ class SongService {
                 <!DOCTYPE HTML>
                 <html>
                     <meta http-equiv="refresh" content="1">
-                    <body>
-                    </body>
+                    <body></body>
                 </html>
             `;
         }

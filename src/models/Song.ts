@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-export interface Song {
+export class Song {
     // Maps to id on SsSong
-    ssId: number,
+    ssId: number;
 
     // Maps directly to fields on SsSong
     artist: string;
@@ -17,10 +17,10 @@ export interface Song {
     chords: string;
     tab: string;
 
-    dateAdded: Date, //createdAt
-    datePlayed: Date, //lastPlayed
-    playCount: number, //timesPlayed
-    requestedBy: string, //???
+    dateAdded: Date; //createdAt
+    datePlayed: Date; //lastPlayed
+    playCount: number; //timesPlayed
+    requestedBy: string; //???
 
     // Fields that do not exist on SsSong
     id?: number;
@@ -70,7 +70,7 @@ export class SsSong {
     createdAt: Date;
     lastPlayed: Date;
     timesPlayed: number;
-
+    nonlistSong: string;
     attributes: AttributeEntity[] = [];
 }
 
