@@ -538,7 +538,7 @@ class SongService {
         this.log(LogLevel.Verbose, "Merging song: ", methodName);
 
         let ssSong: SsSong = this.mergeSong(song);
-        let mergeSuccess = ssSong != null;
+        let mergeSuccess = (ssSong != null) && (ssSong.id != 0);
 
         this.log(LogLevel.Verbose, `Merge success: ${mergeSuccess}`, methodName);
         this.log(LogLevel.Verbose, `ssSong: ${JSON.stringify(ssSong)}`, methodName);
