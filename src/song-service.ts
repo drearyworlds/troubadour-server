@@ -81,13 +81,7 @@ class SongService {
                 // Maybe a live learn? Create a new SsSong Entry
                 ssSong = new SsSong();
                 ssSong.id = song.ssId;
-                if (ssSong.title) {
-                    this.log(LogLevel.Failure, "Found title", methodName);
-                    ssSong.title = ssSong.nonlistSong;
-                } else if (ssSong.nonlistSong) {
-                    this.log(LogLevel.Failure, "Found nonlistSong", methodName);
-                    ssSong.title = ssSong.nonlistSong;
-                }
+
                 // Update the data for which Song is source of truth
                 this.setSsSongFieldsFromSong(ssSong, song);
             } catch (e) {
