@@ -477,6 +477,7 @@ class SongService {
                 && this.currentSong.suggestedBy != null
                 && this.currentSong.suggestedBy != ""
                 && this.currentSong.suggestedBy != "drearyworlds");
+            hasLearnedFor = false;
             let learnedForDiv = hasLearnedFor ? `<div><h3>${"Learned for "  + this.currentSong.suggestedBy}</h3></div>` : ``;
 
             let hasRequestedBy = (this.currentSong.requestedBy
