@@ -24,10 +24,10 @@ class DatabaseManager {
         LogService.log(LogLevel.Info, dbConnectionString)
 
         await mongoose.connect(dbConnectionString, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            useFindAndModify: false,
-            useCreateIndex: true
+            // useNewUrlParser: true,
+            // useUnifiedTopology: true,
+            // useFindAndModify: false,
+            // useCreateIndex: true
         }).then(()=> {
             LogService.log(LogLevel.Info, "Connected to database");
         });
